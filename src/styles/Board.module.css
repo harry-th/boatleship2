@@ -1,0 +1,56 @@
+.square {
+  width: 10%;
+  height: 10%;
+  background-color: blue;
+  display: inline-block;
+}
+.square.inactive {
+  pointer-events: none;
+}
+.square.selectable {
+  background-color: rgb(226, 188, 117);
+}
+.square.twoShot {
+  background-color: yellow;
+}
+.square.nope {
+  background-color: rgb(51, 25, 25);
+}
+.square.selectable.green {
+  background-color: green;
+}
+.square.hit {
+  background-color: red;
+  pointer-events: none;
+}
+.square.missed.green {
+  background-color: white;
+}
+.square.protected {
+  background-color: orange;
+  pointer-events: none;
+}
+.square.protected.missed {
+  background-color: rgb(203, 177, 128);
+}
+.square.protected.mine {
+  background-color: orange;
+}
+.square.missed {
+  background-color: white;
+  pointer-events: none;
+}
+.square.mine {
+  background-color: black;
+}
+.square.hover {
+  background-color: black;
+}
+
+.board {
+  width: 400px;
+  height: 400px;
+}
+.board.yourturn {
+  box-shadow: 3px 3px 3px green;
+}/*# sourceMappingURL=Board.module.css.map */

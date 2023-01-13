@@ -1,0 +1,11 @@
+.app {
+  text-align: center;
+}
+.app .title {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+.app .boardcontainer {
+  display: flex;
+  justify-content: space-evenly;
+}/*# sourceMappingURL=App.module.css.map */
