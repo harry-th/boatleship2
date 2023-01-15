@@ -37,11 +37,11 @@ const Dashboard = ({
                     <div className={[(turn && gameProgress === 'ongoing') ? styles.turnIndicatorTrue : styles.turnIndicatorFalse, styles.turnIndicator].join(' ')}>
                         hello
                     </div>
+                    <p>{turnNumber}</p>
+                    <p>{enemyTurnNumber}</p>
                     <div className={styles.freeshotinformation}>
-                        {(turnNumber % 4 !== 0) || !turnNumber ? <p>{(4 - turnNumber % 4) + freeShotMiss * 4} turns until your freeShot</p>
-                            : <p>{freeShotMiss ? 'free shot used!' : turn ? 'Take your free shot!' : <span>{(4 - turnNumber % 4) + freeShotMiss * 4} turns until your freeShot</span>}</p>}
-                        {(4 - enemyTurnNumber % 4 !== 1) || !enemyTurnNumber ? <p>{4 - enemyTurnNumber % 4 + enemyFreeShotMiss * 4} turns until your opponent's free shot</p>
-                            : <p>{enemyFreeShotMiss > 0 && 'they missed'} their free shot</p>}
+                        {Math.floor(turnNumber) % 4 !== 0 ? <p>{4 - turnNumber % 4} turns until your freeshot</p> : Math.floor(turnNumber) % 4 === 4 || !turn ? <p>your free shot next</p> : <p> {Math.floor(turnNumber) === turnNumber ? 'take your free shot!' : 'extra shot!'}</p>}
+                        {Math.floor(enemyTurnNumber) % 4 !== 0 ? <p>{4 - enemyTurnNumber % 4} turns until opponents freeshot</p> : <p>{turn ? 'their free shot next!' : 'their free shot'}</p>}
                     </div>
                 </div>
                 <div className={styles.charcontainer}>
@@ -57,7 +57,7 @@ const Dashboard = ({
                         wasBluffing={wasBluffing} boardState={boardState} cookies={cookies} socket={socket} setFreeShotMiss={setFreeShotMiss} />}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 

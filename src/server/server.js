@@ -55,15 +55,21 @@ wss.on('connection', (ws, req) => {
             return
         }
         if (message.shot) {
-            playerdata.turnNumber = playerdata.turnNumber + 1
-            console.log(message)
+            let freeshot
+            if (playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0) {
+                freeshot = { freeshot: true }
+                playerdata.turnNumber = playerdata.turnNumber + 0.5
+            } else {
+                playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
+            }
+            console.log(playerdata.turnNumber)
             if (userData[message.id].turn) {
                 let playerModifier
                 let enemyModifier
                 let { index, cornershot } = message
                 const { orange, bluffing } = message
-                enemyModifier = { ...enemyModifier, orange, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber }
-                playerModifier = { ...playerModifier, orange, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber }
+                enemyModifier = { ...enemyModifier, orange, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber, ...freeshot }
+                playerModifier = { ...playerModifier, orange, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber, ...freeshot }
                 if (enemydata.character === 'lineman' && !Array.isArray(index)) {
                     if (!enemydata.twoShots) enemydata.twoShots = []
                     enemydata.twoShots = [index, ...enemydata.twoShots]
@@ -82,9 +88,10 @@ wss.on('connection', (ws, req) => {
                 if (enemydata.bluffing) {
                     playerModifier = { ...playerModifier, bluff: true }
                 }
-                userData[message.id].turn = false
-                userData[groups[message.id]].turn = true
-
+                if (!freeshot) {
+                    userData[message.id].turn = false
+                    userData[groups[message.id]].turn = true
+                }
                 if (Array.isArray(index)) {
                     const shotresults = { missed: [], hit: [] }
                     for (const shot of index) {
@@ -169,26 +176,26 @@ wss.on('connection', (ws, req) => {
             }
             if (Object.keys(userData).includes(message.id) && Object.keys(userData).includes(groups[message.id])) {
                 if (Math.random() > 0.5) {
-                    userData[groups[message.id]].turnNumber = 1
+                    userData[groups[message.id]].turnNumber = 2
                     userData[message.id].turnNumber = 0
                     userData[message.id].turn = true
                     userData[groups[message.id]].turn = false
                 } else {
                     userData[groups[message.id]].turnNumber = 0
-                    userData[message.id].turnNumber = 1
+                    userData[message.id].turnNumber = 2
                     userData[message.id].turn = false
                     userData[groups[message.id]].turn = true
                 }
                 wscodes[message.id].send(JSON.stringify({
                     name: enemydata.name,
                     turnNumber: 0,
-                    enemyTurnNumber: 1,
+                    enemyTurnNumber: 2,
                     boatsreceived: true,
                     turn: userData[message.id].turn
                 }))
                 wscodes[groups[message.id]].send(JSON.stringify({
-                    name: playerdata.name,
-                    turnNumber: 1,
+                    name: message.name,
+                    turnNumber: 2,
                     enemyTurnNumber: 0,
                     boatsreceived: true,
                     turn: userData[groups[message.id]].turn

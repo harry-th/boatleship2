@@ -65,6 +65,7 @@ function App() {
         setLastShots(message.twoShots)
       }
       if (message.you) {
+        if (message.freeshot) setTurn(true)
         if (message?.shipsSunk?.length > 0) {
           setMessages(prev => {
             return [...prev, `you have sunk their ${message.shipsSunk.join('and')}`]
@@ -133,6 +134,7 @@ function App() {
         }
         return
       } else if (!message.you) {
+        if (!message.freeshot) setTurn(true)
         if (message?.shipsSunk?.length > 0) {
           setMessages(prev => {
             return [...prev, `They have sunk your ${message.shipsSunk.join('and')}`]
@@ -145,7 +147,6 @@ function App() {
           })
         }
         if (bluffing) setBluffing('ready')
-        setTurn(true)
         if (message?.shipsSunk?.length > 0) {
           setMessages(prev => {
             return [...prev, `They sunk your ${message.shipsSunk.join('and')}`]
@@ -197,7 +198,6 @@ function App() {
           })
         }
         if (message.hit) {
-          setTurn(true)
           if (Array.isArray(message.index)) {
             setBoardState(prev => {
               for (const shot of message.index)
