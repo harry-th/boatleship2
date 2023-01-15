@@ -2,7 +2,6 @@ const Callbluffbutton = ({ setTurn, wasBluffing, boardState, cookies, socket, se
 
     return (<button onClick={() => {
         setTurn(false)
-        sessionStorage.setItem('turn', JSON.stringify(false))
         if (wasBluffing === 'yes') {
             alert('bluff called')
             let dbx = JSON.stringify(boardState)

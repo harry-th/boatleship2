@@ -1,81 +1,48 @@
-import useBoatrules from "../hooks/boatrules"
 import usePlacementLogic from "../hooks/usePlacement"
 
-let useCornerMan = ({ socket, orientation, boardState, setBoardState, }) => {
+let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules }) => {
     const rules = ({ positions, targets }) => {
         if (positions.some((pos) => targets.includes(pos))) return true
-        for (let i = 0; i < positions.length; i++) {
-            if (positions[i] > 99) positions[i] = positions[i] - 100
-        }
     }
-    const boatrules = useBoatrules()
+    const manipulatePos = (positions) => {
+        for (let i = 0; i < positions.length; i++) {
+            if (positions[i] >= 100) positions[i] = positions[i] - 100
+        }
+        return positions
+    }
     // needs to figure out how to maniulate positions in placement in a modular manner
-    const placement = usePlacementLogic(socket, orientation, boardState, boatrules, setBoardState, rules)
+    const cornerPlacement = usePlacementLogic({ socket, orientation, cookies, boardState, character: 'cornerman', setBoardState, boatrules, rules, manipulatePos })
 
 
-    const cornerHover = (index, gameProgress, boardState, boats, orientation, setBoardState) => {
+    const cornerHover = ({ index, gameProgress, boardState, boatLength, orientation, hoverState, setHoverState, }) => {
+
         if (gameProgress === 'placement' && boardState) {
             let coords = []
-            for (let i = 0; i < boats[0]; i++) {
+            for (let i = 0; i < boatLength; i++) {
                 coords.push(orientation === 'h' ? index + i : index + i * 10)
             }
             for (let i = 0; i < coords.length; i++) {
-                if (coords[i] > 99) coords[i] = coords[i] - 99
+                if (coords[i] >= 100) coords[i] = coords[i] - 100
             }
-            let newBoardState = { ...boardState }
+            let newHoverState = { ...hoverState }
             for (let i = 0; i < coords.length; i++) {
                 if (boardState[coords[i]]?.state === 'mine') return
             }
 
-            for (const square in newBoardState) {
+            for (const square in newHoverState) {
                 if (coords.includes(Number(square))) {
-                    newBoardState[square].hover = 'hover'
-                } else if (newBoardState[square].hover === 'hover') {
-                    newBoardState[square].hover = false
+                    newHoverState[square].hover = 'hover'
+                } else if (newHoverState[square].hover === 'hover') {
+                    newHoverState[square].hover = false
                 }
             }
-            setBoardState(newBoardState)
+            setHoverState(newHoverState)
         }
     }
-
-    const checkHit = (index) => {
-        if (gameProgress === 'placement') {
-            placement(index)
-        } else if (turn) {
-
-        }
-    }
-    const cornerSquare = (index) => {
-        let boardClass = player === 'player' ? boardState : enemyBoardState
-        let condition = player === 'ai' && gameProgress === 'ongoing' ? true : player === 'player' && gameProgress === 'placement' && boats.length ?
-            true : false
-        let interactivity = condition ? 'active' : 'inactive'
-        return <div key={index}
-            onClick={() => {
-                // if ((boardClass[index].state === null || boardClass[index].state === 'selectable') && socket.readyState === 1) checkHit(index)
-            }}
-            onMouseEnter={() =>
-                cornerHover(index, gameProgress, hoverState, boats, orientation, setHoverState)
-            }
-            className={[styles.square, styles[interactivity],
-            boardClass && styles[(boardClass)[index].state],
-            boardClass && styles[(boardClass)[index].hover],
-                // (player === 'player' && gameProgress === 'placement') && styles[(hoverState)[index].hover]
-            ].join(' ')
-            }>
-            {index}
-        </div >
-    }
-
-
-
-
-
 
     return {
-        // cornerManPlacement,
-        // cornerShot,
-        // cornerHover
+        cornerHover,
+        cornerPlacement
     }
 }
 

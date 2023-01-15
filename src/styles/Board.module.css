@@ -10,11 +10,18 @@
 .square.selectable {
   background-color: rgb(226, 188, 117);
 }
+.square.guess {
+  background-color: greenyellow;
+}
+.square.guess::after {
+  content: "?";
+  color: black;
+}
 .square.twoShot {
   background-color: yellow;
 }
 .square.nope {
-  background-color: rgb(51, 25, 25);
+  background-color: rgb(134, 42, 42);
 }
 .square.selectable.green {
   background-color: green;

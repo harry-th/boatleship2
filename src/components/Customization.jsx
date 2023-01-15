@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import styles from '../styles/Customization.module.css'
 
-const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCookie, cookies, setVsAi, socket }) => {
+const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCookie, cookies, socket }) => {
     const [name, setName] = useState(null)
-    const [display, setDisplay] = useState(character === 'none' ? 'character' : cookies.user.name !== 'noName' ? 'done' : 'name')
+    const [display, setDisplay] = useState(!character ? 'character' : cookies.user.name !== 'noName' ? 'done' : 'name')
     const [waiting, setWaiting] = useState(null)
     const setInformation = (e) => {
         e.preventDefault()
@@ -20,10 +20,9 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
 
     return (
         <div className={styles.customization}>
-            {/* {character === 'none' && <div className={styles.characterselect}>
+            {!character && <div className={styles.characterselect}>
                 <div onClick={() => {
-                    sessionStorage.setItem('character', 'orangeMan')
-                    setCharacter('orangeMan')
+                    setCharacter('orangeman')
                     if (cookies.user.name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>orange mode</h5>
@@ -35,8 +34,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                     </ul>
                 </div>
                 <div onClick={() => {
-                    sessionStorage.setItem('character', 'lineMan')
-                    setCharacter('lineMan')
+                    setCharacter('lineman')
                     if (cookies.user.name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>line mode</h5>
@@ -48,8 +46,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                     </ul>
                 </div>
                 <div onClick={() => {
-                    sessionStorage.setItem('character', 'cornerMan')
-                    setCharacter('cornerMan')
+                    setCharacter('cornerman')
                     if (cookies.user.name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>corner mode</h5>
@@ -58,6 +55,16 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                         <li>if you hit both the rear and head of a boat you sink the boat immediately.</li>
                     </ul>
                 </div>
+                {/* <div onClick={() => {
+                    setCharacter('none')
+                    if (cookies.user.name === 'noName') setDisplay('name')
+                    else setDisplay('done')
+                }}><h5>default mode</h5>
+                    <ul>
+                        <li>can build around the edges of the board</li>
+                        <li>if you hit both the rear and head of a boat you sink the boat immediately.</li>
+                    </ul>
+                </div> */}
             </div>}
             <div onClick={() => {
                 setName(null)
@@ -86,11 +93,9 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                         <input name='boat4' defaultValue={boatNames[3]} />
                         <button>submit</button> </div>}
                 </form>
-            </div> */}
-            {/* {(cookies.user.name !== 'noName' && character) &&  */}
-            <div>
-                {/* {display === 'done' &&  */}
-                <div>
+            </div>
+            {(cookies.user.name !== 'noName' && character) && <div>
+                {display === 'done' && <div>
                     <button onClick={() => {
                         let periods = () => {
                             setTimeout(() => {
@@ -104,21 +109,18 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                         periods()
 
                         setWaiting('waiting for match')
-                        socket.send(JSON.stringify({ ...cookies.user, character }))
+                        socket.current.send(JSON.stringify({ ...cookies.user, character }))
                     }}>find game</button>
-                    {/* <button onClick={() => {
+                    <button onClick={() => {
                         setDisplay('boats')
                     }}>rename boats
                     </button>
                     <button onClick={() => {
-                        setCharacter('none')
+                        setCharacter(false)
                     }}>change character
-                    </button> */}
+                    </button>
                     {waiting && <p>{waiting}</p>}
-                </div>
-                {/* } */}
-            </div>
-            {/* } */}
+                </div>}</div>}
         </div>)
 }
 export default Customization

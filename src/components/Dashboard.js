@@ -26,17 +26,7 @@ const Dashboard = ({
     , setFreeShotMiss
     , enemyFreeShotMiss
     , setEnemyFreeShotMiss }) => {
-    const [curTurn, setCurTurn] = useState(true)
-    useEffect(() => {
-        if (enemyFreeShotMiss > 0) {
-            if (!curTurn && enemyTurnNumber % 4 === 0) {
-                setEnemyFreeShotMiss(prev => prev - 1)
-                setCurTurn(true)
-            } else if (enemyTurnNumber % 4 !== 0) {
-                setCurTurn(false)
-            }
-        }
-    }, [curTurn, enemyTurnNumber, enemyFreeShotMiss, setEnemyFreeShotMiss])
+
     return (
         <div className={styles.dashboard}>
             <div className={styles.logcontainer}>
@@ -55,11 +45,11 @@ const Dashboard = ({
                     </div>
                 </div>
                 <div className={styles.charcontainer}>
-                    {character === 'orangeMan' && <OrangeManUI turn={turn} setTurn={setTurn} socket={socket}
+                    {character === 'orangeman' && <OrangeManUI turn={turn} setTurn={setTurn} socket={socket}
                         enemyBoardState={enemyBoardState} enemyTargets={enemyTargets} cookies={cookies}
                         setEnemyBoardState={setEnemyBoardState} />
                     }
-                    {character === 'lineMan' && <LineManUI turn={turn} setTurn={setTurn} enemyBoardState={enemyBoardState}
+                    {character === 'li' && <LineManUI turn={turn} setTurn={setTurn} enemyBoardState={enemyBoardState}
                         enemyTargets={enemyTargets} enemyBoatPlacements={enemyBoatPlacements} setEnemyBoatPlacements={setEnemyBoatPlacements}
                         setEnemyBoardState={setEnemyBoardState} socket={socket} cookies={cookies} setTurnNumber={setTurnNumber} turnNumber={turnNumber} setFreeShotMiss={setFreeShotMiss} />
                     }

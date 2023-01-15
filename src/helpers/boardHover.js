@@ -8,7 +8,6 @@ const boardHover = (index, gameProgress, hoverState, boatLength, orientation, se
         for (let i = 0; i < coords.length; i++) {
             if (hoverState[coords[i]]?.state === 'mine') return
         }
-
         for (const square in newBoardState) {
             if (coords.includes(Number(square))
                 && (orientation === 'v' || ((Math.floor(coords[coords.findIndex((r) => r === square) + 1] / 10) * 10) - (Math.floor(square / 10) * 10) === 0))) {
