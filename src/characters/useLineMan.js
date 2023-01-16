@@ -42,28 +42,28 @@ const useLineMan = () => {
                 let result = []
                 const checkSquares = (i, result) => {
                     if (boardState[i].state === 'missed' || boardState[i].state === 'hit' || boardState[i].hover === 'protected') {
-                        let oldState = boardState[i].state
+                        let lastState = boardState[i].state
                         setBoardState(prev => {
                             prev[i].state = 'nope'
                             return { ...prev }
                         })
 
                         setTimeout(() => setBoardState(prev => {
-                            prev[i].state = oldState
-                            delete prev[i].oldState
+                            prev[i].state = lastState
+                            delete prev[i].lastState
                             return { ...prev }
                         }), 400)
                         return false
                     } else if (enemyBoardState[i].state === 'selectable' || enemyBoardState[i].state === 'hit' || enemyBoardState[i].hover === 'protected') {
 
-                        let oldState = enemyBoardState[i].state
+                        let lastState = enemyBoardState[i].state
                         setEnemyBoardState(prev => {
                             prev[i].state = 'nope'
                             return prev
                         })
                         setTimeout(() => setEnemyBoardState(prev => {
-                            prev[i].state = oldState
-                            delete prev[i].oldState
+                            prev[i].state = lastState
+                            delete prev[i].lastState
                             return prev
                         }), 400)
                         return false

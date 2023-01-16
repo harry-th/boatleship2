@@ -62,7 +62,7 @@ const Board = ({ socket, cookies, enemyBoardState,
     return (
         <div>
             <button
-                onClick={() => socket.current.send(JSON.stringify({ hello: 'hello' }))}
+                onClick={() => console.log(boardState)}
             >message</button>
             <div className={styles.board}>
                 {[...Array(100)].map((e, i) => <>{element(i)}</>)}

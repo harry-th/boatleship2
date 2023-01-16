@@ -4,19 +4,19 @@ const handleOrange = require('./handleOrange');
 const wss = new WebSocketServer({ port: 8080, ssl: true });
 
 const groups = {}
+// const games = []{state: 'ongoing', players:[id1, id2], id1:name, id2:name }
 const wscodes = {}
 const userData = {}
 console.log('server started')
 
 const findGroup = (groups, id) => {
-    for (const group in groups) {
-        if (!groups[group]) {
-            groups[group] = id
-            groups[id] = group
-            wscodes[id].send(JSON.stringify({ matched: true }))
-            wscodes[group].send(JSON.stringify({ matched: true }))
-            return
-        }
+    let matchID = Object.entries(groups).find((group) => group[1] === null)
+    if (matchID) {
+        groups[matchID[0]] = id
+        groups[id] = matchID[0]
+        wscodes[id].send(JSON.stringify({ matched: true }))
+        wscodes[matchID[0]].send(JSON.stringify({ matched: true }))
+        return
     }
     groups[id] = null
     return
@@ -28,13 +28,14 @@ wss.on('connection', (ws, req) => {
 
     ws.on('message', (message) => {
         message = JSON.parse(message)
-
-
         const enemydata = userData[groups[message.id]]
         const playerdata = userData[message.id]
         if (message.retaliation) {
+            userData[message.id].turn = false
+            userData[groups[message.id]].turn = true
             console.log(message)
-            playerdata.turnNumber = playerdata.turnNumber + 1
+            playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
+
             userData[message.id].turn = false
             userData[groups[message.id]].turn = true
             const shotresults = { missed: [], hit: [] }
@@ -50,26 +51,61 @@ wss.on('connection', (ws, req) => {
                     if (openShots.length === 0) break outerLoop
                 }
             }
-            wscodes[message.id].send(JSON.stringify({ you: true, shotresults, bluffArray: playerdata.bluffArray }))
-            wscodes[groups[message.id]].send(JSON.stringify({ shotresults, bluffArray: playerdata.bluffArray }))
+            wscodes[message.id].send(JSON.stringify({ you: true, shotresults, bluffArray: playerdata.bluffArray, retaliation: true }))
+            wscodes[groups[message.id]].send(JSON.stringify({ shotresults, bluffArray: playerdata.bluffArray, retaliation: true }))
+            return
+        }
+        if (message.callbluff) {
+            userData[message.id].turn = false
+            userData[groups[message.id]].turn = true
+            playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
+
+            if (enemydata.bluffing) {
+                playerdata.bluffing = null
+                let callbluff = 'success'
+                const shotresults = { missed: [], hit: [] }
+                for (const shot of enemydata.bluffArray) {
+                    if (enemydata.targets.includes(shot)) {
+                        enemydata.boardState[shot].state = 'hit'
+                        shotresults.hit.push(shot)
+                    } else {
+                        shotresults.missed.push(shot)
+                        enemydata.boardState[shot].state = 'missed'
+                    }
+                }
+                wscodes[message.id].send(JSON.stringify({ you: true, callbluff }))
+                wscodes[groups[message.id]].send(JSON.stringify({ callbluff, bluffArray: shotresults }))
+            } else {
+                let callbluff = 'failure'
+                playerdata.freeshotmiss = (playerdata.freeshotmiss || 0) + 1
+                wscodes[message.id].send(JSON.stringify({ you: true, callbluff, freeshotmiss: playerdata.freeshotmiss, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber }))
+                wscodes[groups[message.id]].send(JSON.stringify({ callbluff, enemyfreeshotmiss: playerdata.freeshotmiss, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber }))
+            }
             return
         }
         if (message.shot) {
-            let freeshot
-            if (playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0) {
-                freeshot = { freeshot: true }
-                playerdata.turnNumber = playerdata.turnNumber + 0.5
-            } else {
-                playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
-            }
-            console.log(playerdata.turnNumber)
+            console.log(message.index)
             if (userData[message.id].turn) {
                 let playerModifier
                 let enemyModifier
+                const shipsSunk = []
                 let { index, cornershot } = message
                 const { orange, bluffing } = message
-                enemyModifier = { ...enemyModifier, orange, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber, ...freeshot }
-                playerModifier = { ...playerModifier, orange, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber, ...freeshot }
+                let freeshot, extrashot
+                if (playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0 && !playerdata.freeshotmiss) {
+                    freeshot = { freeshot: true }
+                    playerdata.turnNumber = playerdata.turnNumber + 0.5
+                } else {
+                    if (playerdata.freeshotmiss && playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0) {
+                        playerdata.freeshotmiss = (playerdata.freeshotmiss - 1) || 0
+                        playerModifier = { ...playerModifier, freeshotmiss: playerdata.freeshotmiss }
+                        enemyModifier = { ...enemyModifier, enemyfreeshotmiss: playerdata.freeshotmiss }
+                    }
+                    if (playerdata.turnNumber !== Math.floor(playerdata.turnNumber)) extrashot = { extrashot: true }
+                    playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
+                }
+                enemyModifier = { ...enemyModifier, orange, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber, ...freeshot, ...extrashot }
+                playerModifier = { ...playerModifier, orange, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber, ...freeshot, ...extrashot }
                 if (enemydata.character === 'lineman' && !Array.isArray(index)) {
                     if (!enemydata.twoShots) enemydata.twoShots = []
                     enemydata.twoShots = [index, ...enemydata.twoShots]
@@ -85,9 +121,9 @@ wss.on('connection', (ws, req) => {
                     //retalitation activated
                     //bluffarray array of bluffed shots
                 }
-                if (enemydata.bluffing) {
-                    playerModifier = { ...playerModifier, bluff: true }
-                }
+                // if (enemydata.bluffing) {
+                //     playerModifier = { ...playerModifier, bluff: true }
+                // }
                 if (!freeshot) {
                     userData[message.id].turn = false
                     userData[groups[message.id]].turn = true
@@ -103,7 +139,6 @@ wss.on('connection', (ws, req) => {
                             enemydata.boardState[shot].state = 'missed'
                         }
                     }
-                    const shipsSunk = []
                     const allHits = Object.values(enemydata.boardState).filter((item) => {
                         return item.state === 'hit'
                     }).map((el) => Number(el.id))
@@ -116,8 +151,6 @@ wss.on('connection', (ws, req) => {
                             }
                         }
                     }
-                    playerModifier = { ...playerModifier, shipsSunk }
-                    enemyModifier = { ...enemyModifier, shipsSunk }
 
                     wscodes[message.id].send(JSON.stringify({ you: true, shotresults, ...playerModifier, array: true }))
                     wscodes[groups[message.id]].send(JSON.stringify({ shotresults, ...enemyModifier, array: true }))
@@ -127,7 +160,6 @@ wss.on('connection', (ws, req) => {
                         const allHits = Object.values(enemydata.boardState).filter((item) => {
                             return item.state === 'hit'
                         }).map((el) => Number(el.id))
-                        const shipsSunk = []
                         for (const boat in enemydata.boatPlacements) {
                             if (!enemydata.boatPlacements[boat].sunk && allHits.includes(enemydata.boatPlacements[boat].positions[0]) && allHits.includes(enemydata.boatPlacements[boat].positions[enemydata.boatPlacements[boat].positions.length - 1])) {
                                 enemydata.boatPlacements[boat].sunk = true
@@ -138,10 +170,8 @@ wss.on('connection', (ws, req) => {
                                 }
                             }
                         }
-                        playerModifier = { ...playerModifier, shipsSunk }
-                        enemyModifier = { ...enemyModifier, shipsSunk }
+
                     } else {
-                        const shipsSunk = []
                         const allHits = Object.values(enemydata.boardState).filter((item) => {
                             return item.state === 'hit'
                         }).map((el) => Number(el.id))
@@ -154,15 +184,20 @@ wss.on('connection', (ws, req) => {
                                 }
                             }
                         }
-                        playerModifier = { ...playerModifier, shipsSunk }
-                        enemyModifier = { ...enemyModifier, shipsSunk }
+
                     }
-                    if (!bluffing) wscodes[message.id].send(JSON.stringify({ you: true, hit: true, index, ...playerModifier }))
-                    wscodes[groups[message.id]].send(JSON.stringify({ hit: true, index, ...enemyModifier }))
+                    if (bluffing) {
+                        wscodes[message.id].send(JSON.stringify({ you: true, index, ...playerModifier }))
+                    } else
+                        wscodes[message.id].send(JSON.stringify({ you: true, hit: true, index, shipsSunk, ...playerModifier }))
+                    wscodes[groups[message.id]].send(JSON.stringify({ hit: true, index, shipsSunk, ...enemyModifier }))
                 } else if (!enemydata.targets.includes(index)) {
                     enemydata.boardState[index].state = 'missed'
-                    if (!bluffing) wscodes[message.id].send(JSON.stringify({ you: true, missed: true, index, ...playerModifier }))
-                    wscodes[groups[message.id]].send(JSON.stringify({ missed: true, index, ...enemyModifier }))
+                    if (bluffing) {
+                        wscodes[message.id].send(JSON.stringify({ you: true, index, ...playerModifier }))
+                    } else
+                        wscodes[message.id].send(JSON.stringify({ you: true, missed: true, index, shipsSunk, ...playerModifier }))
+                    wscodes[groups[message.id]].send(JSON.stringify({ missed: true, index, shipsSunk, ...enemyModifier }))
                 }
             }
         }

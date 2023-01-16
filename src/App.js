@@ -11,7 +11,6 @@ import styles from './styles/App.module.css'
 import Dashboard from './components/Dashboard';
 import useOrangeMan from './characters/useOrangeMan';
 import useLineMan from './characters/useLineMan';
-import recursiveRemoveProtection from './helpers/removeOrange';
 let randomstring = require("randomstring");
 
 
@@ -65,27 +64,41 @@ function App() {
         setLastShots(message.twoShots)
       }
       if (message.you) {
-        if (message.freeshot) setTurn(true)
-        if (message?.shipsSunk?.length > 0) {
-          setMessages(prev => {
-            return [...prev, `you have sunk their ${message.shipsSunk.join('and')}`]
-          })
+        if (message.freeshotmiss || message.freeshotmiss === 0) {
+          setFreeShotMiss(message.freeshotmiss)
         }
-        if (typeof message.index !== 'object') {
+        if (message.enemyfreeshotmiss || message.enemyfreeshotmiss === 0) {
+          setEnemyFreeShotMiss(message.enemyfreeshotmiss)
+        }
+        if (message.freeshot) setTurn(true)
+        if (message.index) {
           setMessages(prev => {
             if (message.hit) return [...prev, `You fired at ${message.index} and it was a hit!`]
             else return [...prev, `You fired at ${message.index} but it missed!`]
           })
         }
+        if (message?.shipsSunk?.length > 0) {
+          setMessages(prev => {
+            return [...prev, `you have sunk their ${message.shipsSunk.join('and')}`]
+          })
+        }
         if (message.orange) {
-          recursiveRemoveProtection(setBoardState)
           setBoardState(prev => {
-            prev[message.index].oldState = prev[message.index].state
+            if (!message.extrashot) {
+              let proSq = Object.values(prev).filter((item) => {
+                return item.state === 'protected'
+              }).map(item => item.id)
+              for (const sq of proSq) {
+                prev[sq].state = prev[sq].oldState
+                delete prev[sq].oldState
+              }
+            }
+            prev[message.index].oldState ||= prev[message.index].state
             prev[message.index].state = 'protected'
             return { ...prev }
           })
         }
-        if (message.bluffArray) {
+        if (message.bluffArray && message.retaliation) {
           setEnemyBoardState(prev => {
             for (const b of message.bluffArray) {
               prev[b].state = null
@@ -97,6 +110,14 @@ function App() {
               prev[shot].state = 'hit'
             }
             return { ...prev }
+          })
+        } else if (message.callbluff === 'success') {
+          setMessages(prev => {
+            return [...prev, `You called their bluff!`]
+          })
+        } else if (message.callbluff === 'failure') {
+          setMessages(prev => {
+            return [...prev, `they weren't bluffing!`]
           })
         }
         if (message.array) {
@@ -134,6 +155,12 @@ function App() {
         }
         return
       } else if (!message.you) {
+        if (message.freeshotmiss || message.freeshotmiss === 0) {
+          setFreeShotMiss(message.freeshotmiss)
+        }
+        if (message.enemyfreeshotmiss || message.enemyfreeshotmiss === 0) {
+          setEnemyFreeShotMiss(message.enemyfreeshotmiss)
+        }
         if (!message.freeshot) setTurn(true)
         if (message?.shipsSunk?.length > 0) {
           setMessages(prev => {
@@ -153,15 +180,22 @@ function App() {
           })
         }
         if (message.orange) {
-          recursiveRemoveProtection(setEnemyBoardState)
-          recursiveRemoveProtection(setBoardState)
           setEnemyBoardState(prev => {
-            prev[message.index].oldState = prev[message.index].state
+            if (!message.extrashot) {
+              let proSq = Object.values(prev).filter((item) => {
+                return item.state === 'protected'
+              }).map(item => item.id)
+              for (const sq of proSq) {
+                prev[sq].state = prev[sq].oldState
+                delete prev[sq].oldState
+              }
+            }
+            prev[message.index].oldState ||= prev[message.index].state //very weird bug here
             prev[message.index].state = 'protected'
             return { ...prev }
           })
         }
-        if (message.bluffArray) {
+        if (message.bluffArray && !message.callbluff) {
           setBoardState(prev => {
             for (const b of message.bluffArray) {
               prev[b].state = null
@@ -173,6 +207,24 @@ function App() {
               prev[shot].state = 'hit'
             }
             return { ...prev }
+          })
+        } else if (message.bluffArray && message.callbluff === 'success') {
+          setMessages(prev => {
+            return [...prev, `They called your bluff!`]
+          })
+          setBluffing(null)
+          setEnemyBoardState(prev => {
+            for (const shot of message.bluffArray.missed) {
+              prev[shot].state = 'missed'
+            }
+            for (const shot of message.bluffArray.hit) {
+              prev[shot].state = 'hit'
+            }
+            return { ...prev }
+          })
+        } else if (message.callbluff === 'failure') {
+          setMessages(prev => {
+            return [...prev, `They tried to call your bluff and failed!`]
           })
         }
         if (message.array) {
