@@ -44,12 +44,10 @@ function App() {
   // I think there are some issues with having these inside an effect callback
   // https://overreacted.io/a-complete-guide-to-useeffect/
 
-  this.componentDidMount = () => {
-    console.log('mounted!');
-  }
+  socket.current = socket.current || new WebSocket('ws://localhost:8080/ws')
 
   useEffect(function connect() {
-    socket.current = new WebSocket('ws://localhost:8080/ws')
+    // socket.current = new WebSocket('ws://localhost:8080/ws')
 
     // socket open
     socket.current.onopen = () => {
@@ -73,6 +71,10 @@ function App() {
     socket.current.onmessage = (e) => {
       const message = JSON.parse(e.data)
       console.log(message)
+
+      if (message.type === 'set-cookie') {
+        cookies.set(message.name, message.value);
+      }
 
       setTurnNumber(message.turnNumber)
       setEnemyTurnNumber(message.enemyTurnNumber)
