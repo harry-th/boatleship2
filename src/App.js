@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
-import Cookies from 'universal-cookie'
+import { useEffect, useRef, useState } from 'react';
+import Cookies from 'universal-cookie';
 
-import './App.css'
+import './App.css';
 import Board from './components/Board'
 import EnemyBoard from './components/EnemyBoard'
-import generateBoard from './helpers/generateBoard'
-import Customization from './components/Customization'
-// import Endofgame from './components/Endofgame'
+import generateBoard from './helpers/generateBoard';
+import Customization from './components/Customization';
+// import Endofgame from './components/Endofgame';
 import styles from './styles/App.module.css'
-import Dashboard from './components/Dashboard'
-import useOrangeMan from './characters/useOrangeMan'
-import useLineMan from './characters/useLineMan'
+import Dashboard from './components/Dashboard';
+import useOrangeMan from './characters/useOrangeMan';
+import useLineMan from './characters/useLineMan';
 
 
 const cookies = new Cookies()
@@ -20,7 +20,8 @@ function App() {
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine } = useLineMan()
 
-  const socket = useRef(null)
+
+  const socket = useRef(null);
 
   const [gameProgress, setGameProgress] = useState('preplacement')
   const [boardState, setBoardState] = useState(generateBoard(true, true))
@@ -44,16 +45,9 @@ function App() {
   // I think there are some issues with having these inside an effect callback
   // https://overreacted.io/a-complete-guide-to-useeffect/
 
-  socket.current = socket.current || new WebSocket('ws://localhost:8080/ws')
-
+  // socket connect/reconnect
   useEffect(function connect() {
-    // socket.current = new WebSocket('ws://localhost:8080/ws')
-
-    // socket open
-    socket.current.onopen = () => {
-      console.log('Socket open.')
-      // TODO: enable finding games
-    }
+    socket.current = new WebSocket('ws://localhost:8080/ws');
 
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
@@ -63,13 +57,27 @@ function App() {
 
     // close on error
     socket.current.onerror = (e) => {
-      console.error('Socket error:', e)
+      console.error('Socket error:', e.code || 'unknown');
       socket.current.close()
     }
+  }, [])
 
-    // websocket message handler
-    socket.current.onmessage = (e) => {
-      const message = JSON.parse(e.data)
+  // socket open
+  useEffect(() => {
+    const openListener = (e) => {
+      console.log('Socket open.')
+      // TODO: enable finding games
+    }
+    socket.current.addEventListener('open', openListener)
+    return () => {
+      socket.current.removeEventListener('open', openListener)
+    }
+  }, [])
+
+  // socket message
+  useEffect(() => {
+    const messageListener = (event) => {
+      let message = JSON.parse(event.data)
       console.log(message)
 
       if (message.type === 'set-cookie') {
@@ -78,7 +86,11 @@ function App() {
 
       setTurnNumber(message.turnNumber)
       setEnemyTurnNumber(message.enemyTurnNumber)
-
+      if (message.cookies) {  // set cookies received from server
+        Object.entries(message.cookies).forEach(([name, value]) => {
+          cookies.set(name, value)
+        })
+      }
       if (message.twoShots) {
         setLastShots(message.twoShots)
       }
@@ -279,7 +291,11 @@ function App() {
         console.log('got the boats')
       }
     }
-  }, [])
+    socket.current.addEventListener('message', messageListener)
+    return () => {
+      socket.current.removeEventListener('message', messageListener)
+    }
+  }, [bluffing, setLastShots, setBluffing])
 
   return (
     <div className={styles.app}>
@@ -335,10 +351,10 @@ function App() {
             enemyFreeShotMiss={enemyFreeShotMiss}
             setEnemyFreeShotMiss={setEnemyFreeShotMiss}
           />
-        </> : cookies?.user?.state === 'matching' ?
+        </> : cookies.get('user')?.state === 'matching' ?
           <>
             {/* <button onClick={() => {
-              socket.current.send(JSON.stringify({ ...cookies.user, character }))
+              socket.current.send(JSON.stringify({ ...cookies.get('user'), character }))
             }}>find game</button> */}
             <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
               setBoatNames={setBoatNames} setCookie={cookies.set} cookies={cookies}

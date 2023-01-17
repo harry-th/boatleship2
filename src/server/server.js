@@ -7,31 +7,23 @@ const handleOrange = require('./handleOrange');
 
 const wss = new WebSocketServer({ port: 8080, ssl: true });
 
-const groups = {};
-const wscodes = {};
-const userData = {};
+const groups = {}
+// const games = []{state: 'ongoing', players:[id1, id2], id1:name, id2:name }
+const wscodes = {}
+const userData = {}
 
 
-const findGroup = (id) => {
-  // check if user hasn't already been added to groups
-  if (!groups.hasOwnProperty(id)) {
-    // search for empty group
-    const group = Object.entries(groups).find((e) => e[1] === null)
-    if (group) {
-      const ud = group[0]  // udentification
-
-      groups[id] = ud
-      groups[ud] = id
-      wscodes[id].send(JSON.stringify({ matched: true }))
-      wscodes[ud].send(JSON.stringify({ matched: true }))
-    } else {
-      // add user to groups, wait for opponent
-      groups[id] = null;
-    }
+const findGroup = (groups, id) => {
+  const matchID = Object.entries(groups).find((group) => group[1] === null)
+  if (matchID) {
+    groups[matchID[0]] = id
+    groups[id] = matchID[0]
+    wscodes[id].send(JSON.stringify({ matched: true }))
+    wscodes[matchID[0]].send(JSON.stringify({ matched: true }))
+  } else {
+    groups[id] = null
   }
 }
-
-// TODO: create a state object constructor
 
 // Server startup
 wss.on('listening', () => {
@@ -44,15 +36,17 @@ wss.on('listening', () => {
 // When a new websocket connection is established id:{ boatPlacements: message.boatPlacements, targets: message.targets, boardState: message.boardState }
 wss.on('connection', (ws, req) => {
   const cookies = new Cookies(req.headers.cookie)
-  let id = cookies?.get('user')
+  let id = cookies?.get('user').id
 
   // create new user
   if (!userData[id]) {
     // generate a unique user id
     do { id = uuid.v4() } while (groups[id])
 
-    userData[id] = {}  // PLACEHOLDER
-    ws.send(JSON.stringify({ type: 'set-cookie', name: 'user', value: id }))
+    userData[id] = {}  // placeholder
+    ws.send(JSON.stringify({cookies: {
+      'user': { id: id, state: 'matching', wins: 0, losses: 0 }
+    }}))
 
     console.log('new user:', id)
   }
@@ -61,10 +55,8 @@ wss.on('connection', (ws, req) => {
   // update user socket
   wscodes[id] = ws
 
-  // cookies.set('user', { id: randomstring.generate(), state: 'matching', wins: 0, losses: 0 })
-
   ws.on('close', (code, reason) => {
-    // TODO: handle socket close
+    // TODO: handle socket close server-side (ex. send 'user disconnected')
   })
 
   ws.on('message', (message) => {
@@ -280,7 +272,11 @@ wss.on('connection', (ws, req) => {
       return
     }
     if (message.state === 'matching') {
-      findGroup(id)
+      if (!groups.hasOwnProperty(id)) {
+        findGroup(id)
+      }
     }
   });
+
+
 });

@@ -14,7 +14,7 @@ const Board = ({ socket, cookies, enemyBoardState,
                 prev[index].state = 'guess'
                 return prev
             })
-            socket.current.send(JSON.stringify({ id: cookies.user.id, shot: true, index, ...modifier }))
+            socket.current.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
             setTurn(false)
         }
     }
