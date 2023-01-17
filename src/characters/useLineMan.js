@@ -152,7 +152,7 @@ const useLineMan = () => {
 
                     onClick={() => {
                         if (turn && !selecting && charges) {
-                            socket.current.send(JSON.stringify({ shot: true, index: lastShots, id: cookies.user.id, twoShot: true }))
+                            socket.current.send(JSON.stringify({ shot: true, index: lastShots, id: cookies.get('user').id, twoShot: true }))
                             setTurn(false)
                         }
                     }}>

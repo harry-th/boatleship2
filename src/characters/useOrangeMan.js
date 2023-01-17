@@ -19,7 +19,7 @@ let useOrangeMan = () => {
                         if (bluffing === 'ready') {
                             setTurn(false)
                             setBluffing(null)
-                            socket.current.send(JSON.stringify({ id: cookies.user.id, retaliation: true, }))
+                            socket.current.send(JSON.stringify({ id: cookies.get('user').id, retaliation: true, }))
                         }
                     }
                 }}>{bluffing === 'ready' ? 'fire Retaliation' :
