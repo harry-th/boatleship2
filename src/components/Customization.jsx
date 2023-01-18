@@ -3,7 +3,7 @@ import styles from '../styles/Customization.module.css'
 
 const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCookie, cookies, socket }) => {
     const [name, setName] = useState(null)
-    const [display, setDisplay] = useState(!character ? 'character' : cookies.user.name !== 'noName' ? 'done' : 'name')
+    const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user').name !== 'noName' ? 'done' : 'name')
     const [waiting, setWaiting] = useState(null)
     const setInformation = (e) => {
         e.preventDefault()
@@ -14,7 +14,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
             newBoatNames[i] = names[i] || newBoatNames[i]
         }
         setBoatNames(newBoatNames)
-        setCookie('user', { ...cookies.user, name })
+        // setCookie('user', { ...cookies.get('user'), name })
         setDisplay('done')
     }
 
@@ -23,7 +23,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
             {!character && <div className={styles.characterselect}>
                 <div onClick={() => {
                     setCharacter('orangeman')
-                    if (cookies.user.name === 'noName') setDisplay('name')
+                    if (cookies.get('user').name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>orange mode</h5>
                     <ul>
@@ -35,7 +35,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                 </div>
                 <div onClick={() => {
                     setCharacter('lineman')
-                    if (cookies.user.name === 'noName') setDisplay('name')
+                    if (cookies.get('user').name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>line mode</h5>
                     <ul>
@@ -47,7 +47,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                 </div>
                 <div onClick={() => {
                     setCharacter('cornerman')
-                    if (cookies.user.name === 'noName') setDisplay('name')
+                    if (cookies.get('user').name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>corner mode</h5>
                     <ul>
@@ -57,7 +57,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                 </div>
                 {/* <div onClick={() => {
                     setCharacter('none')
-                    if (cookies.user.name === 'noName') setDisplay('name')
+                    if (cookies.get('user').name === 'noName') setDisplay('name')
                     else setDisplay('done')
                 }}><h5>default mode</h5>
                     <ul>
@@ -69,11 +69,11 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
             <div onClick={() => {
                 setName(null)
                 setDisplay('name')
-            }}> {name || (cookies.user.name !== 'noName' ? cookies.user.name : null)} {cookies.user.name !== 'noName' && <span> wins/losses: {cookies.user.wins} / {cookies.user.losses}</span>}</div>
+            }}> {name || (cookies.get('user').name !== 'noName' ? cookies.get('user').name : null)} {cookies.get('user').name !== 'noName' && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}</div>
             <div className={styles.boatform}>
                 {(name && display === 'name') && <p>choose Boat names?</p>}
                 <form onSubmit={(e) => setInformation(e)}>
-                    {(display === 'name' && cookies.user.name === 'noName') && <div>
+                    {(display === 'name' && cookies.get('user').name === 'noName') && <div>
                         <div>
                             <label htmlFor='name'>name</label>
                         </div>
@@ -82,7 +82,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                     </div>}
                     {display === 'boats' && <div className={styles.boatfields}>
                         <h4>Choose your Boat Names:</h4>
-                        <input name='name' value={name || cookies.user.name} hidden />
+                        <input name='name' value={name || cookies.get('user').name} hidden />
                         <label htmlFor='boat1'>destroyer</label>
                         <input name='boat1' defaultValue={boatNames[0]} />
                         <label htmlFor='boat2'>cruiser</label>
@@ -94,7 +94,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                         <button>submit</button> </div>}
                 </form>
             </div>
-            {(cookies.user.name !== 'noName' && character) && <div>
+            {(cookies.get('user').name !== 'noName' && character) && <div>
                 {display === 'done' && <div>
                     <button onClick={() => {
                         let periods = () => {
@@ -103,13 +103,13 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                                     if (prev.match(/\.\.\./)) return 'waiting for match'
                                     return prev + '.'
                                 })
-                                if (cookies.user.state === 'matching') periods()
+                                if (cookies.get('user').state === 'matching') periods()
                             }, 1000)
                         }
                         periods()
 
                         setWaiting('waiting for match')
-                        socket.current.send(JSON.stringify({ ...cookies.user, character, boatNames }))
+                        socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames }))
                     }}>find game</button>
                     <button onClick={() => {
                         setDisplay('boats')

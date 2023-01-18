@@ -1,3 +1,5 @@
+const Cookies = require('universal-cookie');
+const uuid = require('uuid');
 const { WebSocketServer } = require('ws');
 const { normalSinkCheck, cornerSinkCheck } = require('./boatSinkCheck');
 const handleOrange = require('./handleOrange');
@@ -21,16 +23,46 @@ const findGroup = ({ groups, id, name, character, boatnames }) => {
         let enemyinfo = userInfo[groups[id]]
         wscodes[id].send(JSON.stringify({ matched: true, ...enemyinfo }))
         wscodes[matchID[0]].send(JSON.stringify({ matched: true, ...playerinfo }))
-        return
+    } else {
+        groups[id] = null
     }
-    groups[id] = null
-    return
 }
+
+
+// Server startup
+wss.on('listening', () => {
+    const { address, port } = wss.address()
+    console.log(`server listening on ${address}:${port}`)
+});
 // id:(their id) : groups
 //userdata[groups[your id]]
 // When a new websocket connection is established id:{ boatPlacements: message.boatPlacements, targets: message.targets, boardState: message.boardState }
 wss.on('connection', (ws, req) => {
+    const cookies = new Cookies(req.headers.cookie)
+    let id = cookies?.get('user')?.id
 
+    // create new user
+    if (!userData[id]) {
+        // generate a unique user id
+        do { id = uuid.v4() } while (groups[id])
+
+        userData[id] = {}  // placeholder
+        ws.send(JSON.stringify({
+            cookies: {
+                'user': { id: id, state: 'matching', wins: 0, losses: 0 }
+            }
+        }))
+
+        console.log('new user:', id)
+    }
+    else console.log('existing user:', id)
+
+    // update user socket
+    wscodes[id] = ws
+
+    ws.on('close', (code, reason) => {
+        // TODO: handle socket close server-side (ex. send 'user disconnected')
+    })
     ws.on('message', (message) => {
         message = JSON.parse(message)
         const enemydata = userData[groups[message.id]]
@@ -111,9 +143,9 @@ wss.on('connection', (ws, req) => {
                     playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
                 }
                 enemyModifier = { ...enemyModifier, orange, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber, ...freeshot, ...extrashot }
-                playerModifier = { ...playerModifier, orange, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber, ...freeshot, ...extrashot }
+                playerModifier = { ...playerModifier, orange, ...freeshot, ...extrashot }
                 if (enemydata.character === 'lineman') {
-                    enemydata.twoShots = enemydata.twoShots ? [index[0], ...enemydata.twoShots] : index
+                    enemydata.twoShots = enemydata.twoShots ? [index[0], ...enemydata.twoShots] : [index[0]]
                     if (enemydata.twoShots.length > 2) enemydata.twoShots.pop()
                     enemyModifier = { ...enemyModifier, twoShots: enemydata.twoShots }
                 }
@@ -156,13 +188,11 @@ wss.on('connection', (ws, req) => {
         }
         if (message.boatdata) {
             userData[message.id] = {
-                name: message.name,
-                character: message.character,
                 boatPlacements: message.boatPlacements,
                 targets: message.targets,
                 boardState: message.boardState
             }
-            if (Object.keys(userData).includes(message.id) && Object.keys(userData).includes(groups[message.id])) {
+            if (userData.hasOwnProperty(message.id) && userData.hasOwnProperty(groups[message.id])) {
                 if (Math.random() > 0.5) {
                     userData[groups[message.id]].turnNumber = 2
                     userData[message.id].turnNumber = 0
@@ -175,14 +205,12 @@ wss.on('connection', (ws, req) => {
                     userData[groups[message.id]].turn = true
                 }
                 wscodes[message.id].send(JSON.stringify({
-                    name: enemydata.name,
                     turnNumber: 0,
                     enemyTurnNumber: 2,
                     boatsreceived: true,
                     turn: userData[message.id].turn
                 }))
                 wscodes[groups[message.id]].send(JSON.stringify({
-                    name: message.name,
                     turnNumber: 2,
                     enemyTurnNumber: 0,
                     boatsreceived: true,
@@ -192,16 +220,11 @@ wss.on('connection', (ws, req) => {
             return
         }
         if (message.state === 'matching') {
-            if (message.id) wscodes[message?.id] = ws
-            else return
-            if (Object.keys(groups).includes(message.id)) return // could be groups[message.id]
-            else {
+            if (!groups.hasOwnProperty(id)) {
                 findGroup({ groups, id: message.id, name: message.name, character: message.character, boatnames: message.boatNames })
             }
         }
     });
-
-
 });
 
 

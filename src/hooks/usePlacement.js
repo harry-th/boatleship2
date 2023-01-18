@@ -59,7 +59,7 @@ const usePlacementLogic = ({ socket, orientation, cookies, boardState, setBoardS
             console.log(boatPlacements)
             socket.send(JSON.stringify({
                 character,
-                boatdata: true, id: cookies.user.id,
+                boatdata: true, id: cookies.get('user').id,
                 boatPlacements: placements,
                 boardState: newBoardState,
                 targets: [...targets, ...positions],

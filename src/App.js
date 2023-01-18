@@ -1,12 +1,12 @@
-import './App.css';
 import { useEffect, useRef, useState } from 'react';
+import Cookies from 'universal-cookie';
+
 import './App.css';
 import Board from './components/Board'
 import EnemyBoard from './components/EnemyBoard'
-import { useCookies } from 'react-cookie';
 import generateBoard from './helpers/generateBoard';
 import Customization from './components/Customization';
-import Endofgame from './components/Endofgame';
+// import Endofgame from './components/Endofgame';
 import styles from './styles/App.module.css'
 import Dashboard from './components/Dashboard';
 import useOrangeMan from './characters/useOrangeMan';
@@ -16,15 +16,15 @@ import fromEnemy from './messagelisteners/toEnemy';
 let randomstring = require("randomstring");
 
 
-function App() {
+const cookies = new Cookies()
 
+function App() {
 
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine } = useLineMan()
 
 
   const socket = useRef(null);
-  const [cookies, setCookie, removeCookie] = useCookies(['user']);
 
   const [gameProgress, setGameProgress] = useState('preplacement')
   const [boardState, setBoardState] = useState(generateBoard(true, true))
@@ -35,27 +35,37 @@ function App() {
   const [turnNumber, setTurnNumber] = useState(sessionStorage.getItem('turnNumber') ? JSON.parse(sessionStorage.getItem('turnNumber')) : 0)
   const [enemyTurnNumber, setEnemyTurnNumber] = useState(turnNumber)
 
-
   const [enemyBoardState, setEnemyBoardState] = useState(sessionStorage.getItem('enemyBoardState') ? JSON.parse(sessionStorage.getItem('enemyBoardState')) : generateBoard(true, true))
   // const [enemyName, setEnemyName] = useState(sessionStorage.getItem('enemyName'))
 
   const [character, setCharacter] = useState(false)
 
-  const [turn, setTurn] = useState(sessionStorage.getItem('turn') ? JSON.parse(sessionStorage.getItem('turn')) : true);
+  const [turn, setTurn] = useState(sessionStorage.getItem('turn') ? JSON.parse(sessionStorage.getItem('turn')) : true)
   const [orientation, setOrientation] = useState('h')
 
-  useEffect(() => {
-    if (Object.keys(cookies).length === 0) {
-      setCookie('user', { id: randomstring.generate(), state: 'matching', wins: 0, losses: 0 }
-      )
-    }
-  }, [cookies, setCookie])
-  useEffect(() => {
+  // websocket connection
+  // TODO: figure out how to deal with dependencies in `onmessage` without creating a new websocket every time
+  // I think there are some issues with having these inside an effect callback
+  // https://overreacted.io/a-complete-guide-to-useeffect/
+
+  // socket connect/reconnect
+  useEffect(function connect() {
     socket.current = new WebSocket('ws://localhost:8080/ws');
-    socket.current.onclose = () => {
-      console.log('connection closed')
+
+    // attempt reconnect after 1s
+    socket.current.onclose = (e) => {
+      console.log('Socket closed:', e.reason)
+      setTimeout(() => connect(), 1000)
+    }
+
+    // close on error
+    socket.current.onerror = (e) => {
+      console.error('Socket error:', e.code || 'unknown');
+      socket.current.close()
     }
   }, [])
+
+  // socket open
   useEffect(() => {
     let ss = { setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setEnemyBoardState, setBoardState, setGameProgress }
     let messageListener = (event) => {
@@ -63,6 +73,11 @@ function App() {
       // console.log(message)
       setTurnNumber(message.turnNumber)
       setEnemyTurnNumber(message.enemyTurnNumber)
+      if (message.cookies) {  // set cookies received from server
+        Object.entries(message.cookies).forEach(([name, value]) => {
+          cookies.set(name, value)
+        })
+      }
       if (message.twoShots) {
         setLastShots(message.twoShots)
       }
@@ -100,12 +115,10 @@ function App() {
     }
   }, [bluffing, setLastShots, setBluffing])
 
-
-
   return (
     <div className={styles.app}>
       <button onClick={() => {
-        removeCookie('user')
+        cookies.remove('user')
         setGameProgress('preplacement')
       }}>remove cookie</button>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
@@ -121,13 +134,13 @@ function App() {
 
           <Board player board={boardState} character={character} socket={socket.current}
             boatNames={boatNames} setBoatNames={setBoatNames}
-            cookies={cookies} setCookie={setCookie}
+            cookies={cookies} setCookie={cookies.set}
             boardState={boardState} setBoardState={setBoardState}
             enemyBoardState={enemyBoardState}
             orientation={orientation} gameProgress={gameProgress} setGameProgress={setGameProgress}
           />
           <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
-            cookies={cookies} setCookie={setCookie} setEnemyBoardState={setEnemyBoardState}
+            cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
             boardState={boardState} turn={turn} setTurn={setTurn}
             // enemyName={enemyName} 
             setBoardState={setBoardState} gameProgress={gameProgress} setGameProgress={setGameProgress}
@@ -155,13 +168,13 @@ function App() {
             enemyFreeShotMiss={enemyFreeShotMiss}
             setEnemyFreeShotMiss={setEnemyFreeShotMiss}
           />
-        </> : cookies?.user?.state === 'matching' ?
+        </> : cookies.get('user')?.state === 'matching' ?
           <>
             {/* <button onClick={() => {
-              socket.current.send(JSON.stringify({ ...cookies.user, character }))
+              socket.current.send(JSON.stringify({ ...cookies.get('user'), character }))
             }}>find game</button> */}
             <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
-              setBoatNames={setBoatNames} setCookie={setCookie} cookies={cookies}
+              setBoatNames={setBoatNames} setCookie={cookies.set} cookies={cookies}
               socket={socket} />
           </> :
           <></>
@@ -169,24 +182,7 @@ function App() {
         }
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
-
-
-/* <div className={styles.title}>WELCOME TO BATTLESHIP</div>
-<div className={styles.boardcontainer}>
-   <button>
-    change boat orientation
-  </button>
-  
-
-  <Board  />
-  <Board  />
-  <Dashboard
-  />
-</> : cookies?.user?.state === 'matching' ? <>
-  <Customization  />
-</> : <Endofgame />}
-</div> */
+export default App

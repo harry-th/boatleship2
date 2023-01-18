@@ -15,7 +15,7 @@ const Board = ({ socket, cookies, enemyBoardState,
                 return prev
             })
             index = !Array.isArray(index) ? [index] : index
-            socket.current.send(JSON.stringify({ id: cookies.user.id, shot: true, index, ...modifier }))
+            socket.current.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
             setTurn(false)
         }
     }

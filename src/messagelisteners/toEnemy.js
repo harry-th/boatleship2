@@ -7,11 +7,7 @@ const fromEnemy = ({ message, ss }) => {
         ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     }
     if (!message.freeshot) ss.setTurn(true)
-    if (message?.shipsSunk?.length > 0) {
-        ss.setMessages(prev => {
-            return [...prev, `They sunk your ${message.shipsSunk.join('and')}`]
-        })
-    }
+
     let index = message.shotresults.missed[0] || message.shotresults.hit[0]
 
     if (message.shotresults) {
@@ -38,7 +34,11 @@ const fromEnemy = ({ message, ss }) => {
             return { ...prev }
         })
     }
-
+    if (message?.shipsSunk?.length > 0) {
+        ss.setMessages(prev => {
+            return [...prev, `They sunk your ${message.shipsSunk.join('and')}`]
+        })
+    }
     if (message.bluffArray && !message.callbluff) {
         ss.setBoardState(prev => {
             for (const b of message.bluffArray) {
