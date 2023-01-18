@@ -7,9 +7,6 @@ const normalSinkCheck = ({ enemydata, }) => {
         if (!enemydata.boatPlacements[boat].sunk && enemydata.boatPlacements[boat].positions.every((b) => allHits.includes(b))) {
             enemydata.boatPlacements[boat].sunk = true
             shipsSunk.push(boat)
-            if (0) { //all ships sunk send win type message
-
-            }
         }
     }
     return { shipsSunk }
@@ -28,9 +25,6 @@ const cornerSinkCheck = ({ enemydata }) => {
                 enemydata.boardState[enemydata.boatPlacements[boat].positions[i]].state = 'hit'
             }
             shipsSunk.push(boat)
-            if (0) { //all ships sunk send win type message
-
-            }
         }
     }
     return { shipsSunk, hits }

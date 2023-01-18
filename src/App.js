@@ -13,7 +13,6 @@ import useOrangeMan from './characters/useOrangeMan';
 import useLineMan from './characters/useLineMan';
 import fromYou from './messagelisteners/fromYou';
 import fromEnemy from './messagelisteners/fromEnemy';
-let randomstring = require("randomstring");
 
 
 const cookies = new Cookies()
@@ -55,7 +54,7 @@ function App() {
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
       console.log('Socket closed:', e.reason)
-      setTimeout(() => connect(), 1000)
+      setTimeout(() => connect(), 1000)//attempted connections create more closes, these wait for the server to open it seems
     }
 
     // close on error

@@ -1,6 +1,6 @@
 const genericTurnAction = ({ playerdata, enemydata }) => {
     let playerModifier = { for: 'player' }
-    let enemyModifier = { for: 'opponent', turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber }
+    let enemyModifier = { for: 'opponent' }
     let freeshot, extrashot
     if (playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0 && !playerdata.freeshotmiss) {
         freeshot = { freeshot: true }
@@ -18,8 +18,8 @@ const genericTurnAction = ({ playerdata, enemydata }) => {
         playerdata.turn = false
         enemydata.turn = true
     }
-    playerModifier = { ...playerModifier, ...freeshot, ...extrashot }
-    enemyModifier = { ...enemyModifier, ...freeshot, ...extrashot }
+    playerModifier = { ...playerModifier, turnNumber: playerdata.turnNumber, ...freeshot, ...extrashot }
+    enemyModifier = { ...enemyModifier, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber, ...freeshot, ...extrashot }
     return { playerModifier, enemyModifier, freeshot, extrashot }
 }
 

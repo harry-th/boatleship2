@@ -1,9 +1,9 @@
 const genericTurnAction = require("./genericTurnAction")
 
 const callBluff = ({ playerdata, enemydata, playerAddress, enemyAddress }) => {
-    let { playerModifier, enemyModifier, freeshot, extrashot } = genericTurnAction({ playerdata, enemydata })
+    let { playerModifier, enemyModifier } = genericTurnAction({ playerdata, enemydata })
     if (enemydata.bluffing) {
-        playerdata.bluffing = null
+        playerdata.bluffing = 'disarmed'
         let callbluff = 'success'
         const shotresults = { missed: [], hit: [] }
         for (const shot of enemydata.bluffArray) {

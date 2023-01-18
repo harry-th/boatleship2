@@ -1,16 +1,11 @@
 const fromEnemy = ({ message, ss }) => {
     console.log({ enemy: message })
-    if (message.freeshotmiss || message.freeshotmiss === 0) {
-        ss.setFreeShotMiss(message.freeshotmiss)
-    }
-    if (message.enemyfreeshotmiss || message.enemyfreeshotmiss === 0) {
-        ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
-    }
+    if (message.win || message.loss) ss.setGameProgress('gameover')
     if (!message.freeshot) ss.setTurn(true)
+    if (message.enemyfreeshotmiss >= 0) ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     ss.setTurnNumber(message.turnNumber)
     ss.setEnemyTurnNumber(message.enemyTurnNumber)
     if (message.bluffing === 'ready') ss.setBluffing('ready')
-    let index = message.shotresults.missed[0] || message.shotresults.hit[0]
 
     if (message.shotresults) {
         let { shotresults } = message
@@ -38,7 +33,7 @@ const fromEnemy = ({ message, ss }) => {
     }
     if (message?.shipsSunk?.length > 0) {
         ss.setMessages(prev => {
-            return [...prev, `They sunk your ${message.shipsSunk.join('and')}`]
+            return [...prev, `They sunk your ${message.shipsSunk.join(' and ')}`]
         })
     }
     if (message.bluffArray && !message.callbluff) {
@@ -46,19 +41,13 @@ const fromEnemy = ({ message, ss }) => {
             for (const b of message.bluffArray) {
                 prev[b].state = null
             }
-            for (const shot of message.shotresults.missed) {
-                prev[shot].state = 'missed'
-            }
-            for (const shot of message.shotresults.hit) {
-                prev[shot].state = 'hit'
-            }
             return { ...prev }
         })
     } else if (message.bluffArray && message.callbluff === 'success') {
         ss.setMessages(prev => {
             return [...prev, `They called your bluff!`]
         })
-        ss.setBluffing(null)
+        ss.setBluffing('disarmed')
         ss.setEnemyBoardState(prev => {
             for (const shot of message.bluffArray.missed) {
                 prev[shot].state = 'missed'
@@ -72,9 +61,11 @@ const fromEnemy = ({ message, ss }) => {
         ss.setMessages(prev => {
             return [...prev, `They tried to call your bluff and failed!`]
         })
+        ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     }
 
     if (message.orange) {
+        let index = message.shotresults.missed[0] || message.shotresults.hit[0]
         ss.setEnemyBoardState(prev => {
             if (!message.extrashot) {
                 let proSq = Object.values(prev).filter((item) => {

@@ -1,6 +1,6 @@
 const retaliation = ({ playerdata, enemydata }) => {
     const index = []
-    let openShots = Object.values(enemydata.boardState).filter(item => item.state === null || item.state === 'mine')
+    let openShots = Object.values(enemydata.boardState).filter(item => item.state === null || item.state === 'mine').map(item => item.id)
     outerLoop: for (let i = 0; i < playerdata.bluffArray.length; i++) {
         for (let j = 0; j < 3; j++) {
             let random = Math.floor(Math.random() * openShots.length)

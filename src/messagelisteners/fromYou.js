@@ -1,15 +1,9 @@
 const fromYou = ({ message, ss }) => {
     console.log({ you: message })
-    if (message.freeshotmiss || message.freeshotmiss === 0) {
-        ss.setFreeShotMiss(message.freeshotmiss)
-    }
-    if (message.enemyfreeshotmiss || message.enemyfreeshotmiss === 0) {
-        ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
-    }
+    if (message.win || message.loss) ss.setGameProgress('gameover')
+    ss.setTurnNumber(message.turnNumber)
+    if (message.freeshotmiss >= 0) ss.setFreeShotMiss(message.freeshotmiss)
     if (message.freeshot) ss.setTurn(true)
-    if (message.turnNumber) ss.setTurnNumber(message.turnNumber)
-
-    let index = message.shotresults.missed[0] || message.shotresults.hit[0]
     if (message.shotresults) {
         let { shotresults } = message
         ss.setMessages(prev => {
@@ -36,10 +30,11 @@ const fromYou = ({ message, ss }) => {
     }
     if (message?.shipsSunk?.length > 0) {
         ss.setMessages(prev => {
-            return [...prev, `you have sunk their ${message.shipsSunk.join('and')}`]
+            return [...prev, `you have sunk their ${message.shipsSunk.join(' and ')}`]
         })
     }
     if (message.orange) {
+        let index = message.shotresults.missed[0] || message.shotresults.hit[0]
         ss.setBoardState(prev => {
             if (!message.extrashot) {
                 let proSq = Object.values(prev).filter((item) => {
@@ -60,14 +55,9 @@ const fromYou = ({ message, ss }) => {
             for (const b of message.bluffArray) {
                 prev[b].state = null
             }
-            for (const shot of message.shotresults.missed) {
-                prev[shot].state = 'missed'
-            }
-            for (const shot of message.shotresults.hit) {
-                prev[shot].state = 'hit'
-            }
             return { ...prev }
         })
+        ss.setBluffing('fired')
     } else if (message.callbluff === 'success') {
         ss.setMessages(prev => {
             return [...prev, `You called their bluff!`]
@@ -76,6 +66,7 @@ const fromYou = ({ message, ss }) => {
         ss.setMessages(prev => {
             return [...prev, `they weren't bluffing!`]
         })
+        ss.setFreeShotMiss(message.freeshotmiss)
     }
 }
 export default fromYou

@@ -5,25 +5,25 @@ let useOrangeMan = () => {
     const [bluffShots, setBluffShots] = useState(sessionStorage.getItem('bluffShots') ? JSON.parse(sessionStorage.getItem('bluffShots')) : [])
 
 
-    const OrangeManUI = ({ turn, setTurn, socket, enemyBoardState, enemyTargets, cookies, setEnemyBoardState }) => {
+    const OrangeManUI = ({ turn, setTurn, socket, cookies }) => {
         return (
             <div>
                 <button onClick={() => {
-                    if (bluffing === null) return
+                    if (bluffing === 'done' || bluffing === 'disarmed') return
                     if (turn) {
-                        if (bluffing !== 'ready') {
-                            setBluffing(prev => {
-                                return !prev
-                            })
+                        if (bluffing === 'bluffing') {
+                            setBluffing(false)
+                        } else if (!bluffing) {
+                            setBluffing('bluffing')
                         }
                         if (bluffing === 'ready') {
                             setTurn(false)
                             setBluffing(null)
-                            socket.current.send(JSON.stringify({ id: cookies.get('user').id, retaliation: true, }))
+                            socket.current.send(JSON.stringify({ id: cookies.get('user').id, shot: true, retaliation: true, }))
                         }
                     }
                 }}>{bluffing === 'ready' ? 'fire Retaliation' :
-                    bluffing === null ? 'fired' : bluffing ? 'stop Bluffing ' : 'start Bluffing'}</button>
+                    bluffing === 'done' ? 'fired' : bluffing === 'disarmed' ? 'disarmed' : bluffing === 'bluffing' ? 'stop Bluffing ' : 'start Bluffing'}</button>
             </div>
         )
     }

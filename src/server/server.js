@@ -14,7 +14,6 @@ const groups = {}
 const wscodes = {}
 const userData = {}
 const userInfo = {}
-console.log('server started')
 
 const findGroup = ({ groups, id, name, character, boatnames }) => {
     userInfo[id] = { ...userInfo[id], name, character, boatnames }
@@ -70,42 +69,46 @@ wss.on('connection', (ws, req) => {
         message = JSON.parse(message)
         const enemydata = userData[groups[message.id]]
         const playerdata = userData[message.id]
-        console.log(playerdata)
 
         if (message.callbluff) {
             callBluff({ playerdata, enemydata, playerAddress: wscodes[message.id], enemyAddress: wscodes[groups[message.id]] })
             return
         }
         if (message.shot) {
-            console.log(message.index)
+            console.log(message)
             if (userData[message.id].turn) {
                 let { playerModifier, enemyModifier } = genericTurnAction({ playerdata, enemydata })
                 let { index, cornershot } = message
-                const { orange, bluffing } = message
+                const { bluffing, orange } = message
 
-                enemyModifier = { ...enemyModifier, ...(orange && orange) }
-                playerModifier = { ...playerModifier, ...(orange && orange) }
+                enemyModifier = { ...enemyModifier, ...(orange && { orange: orange }) }
+                playerModifier = { ...playerModifier, ...(orange && { orange: orange }) }
+
+                if (message.retaliation) {
+                    index = retaliation({ playerdata, enemydata })
+                    playerModifier = { ...playerModifier, bluffArray: playerdata.bluffArray, retaliation: true }
+                    enemyModifier = { ...enemyModifier, bluffArray: playerdata.bluffArray, retaliation: true }
+                }
                 //updates enemy powers
                 if (userInfo[groups[message.id]].character === 'lineman') {
                     enemydata.twoShots = enemydata.twoShots ? [index[0], ...enemydata.twoShots] : [index[0]]
                     if (enemydata.twoShots.length > 2) enemydata.twoShots.pop()
                     enemyModifier = { ...enemyModifier, twoShots: enemydata.twoShots }
                 }
-                if (enemydata.bluffing) {
+                console.log(enemydata.bluffing)
+                if (enemydata.bluffing === 'bluffing') {
                     enemydata.bluffing = 'ready'
                     enemyModifier = { ...enemyModifier, bluffing: 'ready' }
                 }
+                console.log(playerdata.bluffing)
                 //orange active passive ability trigger on use
                 if (orange) {
-                    handleOrange({ index, playerdata, enemyBoardState: enemydata.boardState, extrashot: playerModifier.extrashot, playerModifier, enemyModifier, bluffing })
+                    handleOrange({ index, playerdata, extrashot: playerModifier.extrashot, bluffing })
                 }
-                if (message.retaliation) {
-                    index = retaliation({ playerdata, enemydata })
-                    playerModifier = { ...playerModifier, bluffArray: playerdata.bluffArray, retaliation: true }
-                    enemyModifier = { ...enemyModifier, bluffArray: playerdata.bluffArray, retaliation: true }
-                }
+
                 //hit logic
                 let shotresults = { missed: [], hit: [] }
+                console.log(index)
                 for (const shot of index) {
                     if (enemydata.targets.includes(shot)) {
                         enemydata.boardState[shot].state = 'hit'
@@ -123,10 +126,18 @@ wss.on('connection', (ws, req) => {
                     playerModifier = { ...playerModifier, shipsSunk, cornershot }
                 } else {
                     let { shipsSunk } = normalSinkCheck({ enemydata })
-                    enemyModifier = { ...enemyModifier, shipsSunk }
+                    enemyModifier = { ...enemyModifier, shipsSunk, }
                     playerModifier = { ...playerModifier, shipsSunk }
                 }
-                if (bluffing) {
+                if (playerModifier.shipsSunk.length > 0) {
+                    if (Object.values(enemydata.boatPlacements).filter(i => i.sunk).length === 4) { //all ships sunk send win type message
+                        const win = { win: true }
+                        const loss = { loss: true }
+                        enemyModifier = { ...enemyModifier, win, }
+                        playerModifier = { ...playerModifier, loss }
+                    }
+                }
+                if (bluffing === 'bluffing') {
                     wscodes[message.id].send(JSON.stringify({ ...playerModifier }))
                 } else
                     wscodes[message.id].send(JSON.stringify({ shotresults, ...playerModifier }))
