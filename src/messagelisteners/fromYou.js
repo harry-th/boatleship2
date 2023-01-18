@@ -7,11 +7,8 @@ const fromYou = ({ message, ss }) => {
         ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     }
     if (message.freeshot) ss.setTurn(true)
-    if (message?.shipsSunk?.length > 0) {
-        ss.setMessages(prev => {
-            return [...prev, `you have sunk their ${message.shipsSunk.join('and')}`]
-        })
-    }
+    if (message.turnNumber) ss.setTurnNumber(message.turnNumber)
+
     let index = message.shotresults.missed[0] || message.shotresults.hit[0]
     if (message.shotresults) {
         let { shotresults } = message
@@ -35,6 +32,11 @@ const fromYou = ({ message, ss }) => {
                 prev[shot].state = 'hit'
             }
             return { ...prev }
+        })
+    }
+    if (message?.shipsSunk?.length > 0) {
+        ss.setMessages(prev => {
+            return [...prev, `you have sunk their ${message.shipsSunk.join('and')}`]
         })
     }
     if (message.orange) {

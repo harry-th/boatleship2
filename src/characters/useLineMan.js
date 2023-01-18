@@ -120,7 +120,6 @@ const useLineMan = () => {
             <div onMouseLeave={
                 (e) => {
                     e.stopPropagation()
-
                     setEnemyBoardState(prev => {
                         if (lastShots[0] && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
                         if (lastShots[1] && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last

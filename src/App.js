@@ -12,7 +12,7 @@ import Dashboard from './components/Dashboard';
 import useOrangeMan from './characters/useOrangeMan';
 import useLineMan from './characters/useLineMan';
 import fromYou from './messagelisteners/fromYou';
-import fromEnemy from './messagelisteners/toEnemy';
+import fromEnemy from './messagelisteners/fromEnemy';
 let randomstring = require("randomstring");
 
 
@@ -67,12 +67,13 @@ function App() {
 
   // socket open
   useEffect(() => {
-    let ss = { setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setEnemyBoardState, setBoardState, setGameProgress }
+    let ss = {
+      setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing,
+      setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber
+    }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
       // console.log(message)
-      setTurnNumber(message.turnNumber)
-      setEnemyTurnNumber(message.enemyTurnNumber)
       if (message.cookies) {  // set cookies received from server
         Object.entries(message.cookies).forEach(([name, value]) => {
           cookies.set(name, value)

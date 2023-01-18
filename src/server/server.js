@@ -2,7 +2,10 @@ const Cookies = require('universal-cookie');
 const uuid = require('uuid');
 const { WebSocketServer } = require('ws');
 const { normalSinkCheck, cornerSinkCheck } = require('./boatSinkCheck');
+const callBluff = require('./callBluff');
+const genericTurnAction = require('./genericTurnAction');
 const handleOrange = require('./handleOrange');
+const retaliation = require('./retaliation');
 
 const wss = new WebSocketServer({ port: 8080, ssl: true });
 
@@ -14,7 +17,7 @@ const userInfo = {}
 console.log('server started')
 
 const findGroup = ({ groups, id, name, character, boatnames }) => {
-    userInfo[id] = { name, character, boatnames }
+    userInfo[id] = { ...userInfo[id], name, character, boatnames }
     let matchID = Object.entries(groups).find((group) => group[1] === null)
     if (matchID) {
         groups[matchID[0]] = id
@@ -42,11 +45,11 @@ wss.on('connection', (ws, req) => {
     let id = cookies?.get('user')?.id
 
     // create new user
-    if (!userData[id]) {
+    if (!userInfo[id]) {
         // generate a unique user id
         do { id = uuid.v4() } while (groups[id])
 
-        userData[id] = {}  // placeholder
+        userInfo[id] = {}  // placeholder
         ws.send(JSON.stringify({
             cookies: {
                 'user': { id: id, state: 'matching', wins: 0, losses: 0 }
@@ -69,96 +72,39 @@ wss.on('connection', (ws, req) => {
         const playerdata = userData[message.id]
         console.log(playerdata)
 
-        if (message.retaliation) {
-            userData[message.id].turn = false
-            userData[groups[message.id]].turn = true
-            playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
-
-            let playerModifier = { for: 'player' }
-            let enemyModifier = { for: 'opponent' }
-            const shotresults = { missed: [], hit: [] }
-            let openShots = Object.values(enemydata.boardState).filter(item => item.state === null)
-            outerLoop: for (let i = 0; i < playerdata.bluffArray.length; i++) {
-                for (let j = 0; j < 3; j++) {
-                    let random = Math.floor(Math.random() * openShots.length)
-                    let hitOrMiss = enemydata.targets.includes(openShots[random].id)
-                    hitOrMiss ? shotresults.hit.push(openShots[random].id) : shotresults.missed.push(openShots[random].id)
-                    let state = hitOrMiss ? 'hit' : 'missed'
-                    enemydata.boardState[openShots[random].id].state = state
-                    openShots.splice(random, 1)
-                    if (openShots.length === 0) break outerLoop
-                }
-            }
-            wscodes[message.id].send(JSON.stringify({ ...playerModifier, shotresults, bluffArray: playerdata.bluffArray, retaliation: true }))
-            wscodes[groups[message.id]].send(JSON.stringify({ ...enemyModifier, shotresults, bluffArray: playerdata.bluffArray, retaliation: true }))
-            return
-        }
         if (message.callbluff) {
-            userData[message.id].turn = false
-            userData[groups[message.id]].turn = true
-            playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
-            let playerModifier = { for: 'player' }
-            let enemyModifier = { for: 'opponent' }
-            if (enemydata.bluffing) {
-                playerdata.bluffing = null
-                let callbluff = 'success'
-                const shotresults = { missed: [], hit: [] }
-                for (const shot of enemydata.bluffArray) {
-                    if (enemydata.targets.includes(shot)) {
-                        enemydata.boardState[shot].state = 'hit'
-                        shotresults.hit.push(shot)
-                    } else {
-                        shotresults.missed.push(shot)
-                        enemydata.boardState[shot].state = 'missed'
-                    }
-                }
-                wscodes[message.id].send(JSON.stringify({ ...playerModifier, callbluff, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber }))
-                wscodes[groups[message.id]].send(JSON.stringify({ ...enemyModifier, callbluff, bluffArray: shotresults, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber }))
-            } else {
-                let callbluff = 'failure'
-                playerdata.freeshotmiss = (playerdata.freeshotmiss || 0) + 1
-                wscodes[message.id].send(JSON.stringify({ ...playerModifier, callbluff, freeshotmiss: playerdata.freeshotmiss, turnNumber: playerdata.turnNumber, enemyTurnNumber: enemydata.turnNumber }))
-                wscodes[groups[message.id]].send(JSON.stringify({ ...enemyModifier, callbluff, enemyfreeshotmiss: playerdata.freeshotmiss, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber }))
-            }
+            callBluff({ playerdata, enemydata, playerAddress: wscodes[message.id], enemyAddress: wscodes[groups[message.id]] })
             return
         }
         if (message.shot) {
             console.log(message.index)
             if (userData[message.id].turn) {
-                let playerModifier = { for: 'player' }
-                let enemyModifier = { for: 'opponent' }
+                let { playerModifier, enemyModifier } = genericTurnAction({ playerdata, enemydata })
                 let { index, cornershot } = message
                 const { orange, bluffing } = message
-                let freeshot, extrashot
-                if (playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0 && !playerdata.freeshotmiss) {
-                    freeshot = { freeshot: true }
-                    playerdata.turnNumber = playerdata.turnNumber + 0.5
-                } else {
-                    if (playerdata.freeshotmiss && playerdata.turnNumber % 4 === 0 && playerdata.turnNumber !== 0) {
-                        playerdata.freeshotmiss = (playerdata.freeshotmiss - 1) || 0
-                        playerModifier = { ...playerModifier, freeshotmiss: playerdata.freeshotmiss }
-                        enemyModifier = { ...enemyModifier, enemyfreeshotmiss: playerdata.freeshotmiss }
-                    }
-                    if (playerdata.turnNumber !== Math.floor(playerdata.turnNumber)) extrashot = { extrashot: true }
-                    playerdata.turnNumber = Math.floor(playerdata.turnNumber + 1)
-                }
-                enemyModifier = { ...enemyModifier, orange, turnNumber: enemydata.turnNumber, enemyTurnNumber: playerdata.turnNumber, ...freeshot, ...extrashot }
-                playerModifier = { ...playerModifier, orange, ...freeshot, ...extrashot }
-                if (enemydata.character === 'lineman') {
+
+                enemyModifier = { ...enemyModifier, ...(orange && orange) }
+                playerModifier = { ...playerModifier, ...(orange && orange) }
+                //updates enemy powers
+                if (userInfo[groups[message.id]].character === 'lineman') {
                     enemydata.twoShots = enemydata.twoShots ? [index[0], ...enemydata.twoShots] : [index[0]]
                     if (enemydata.twoShots.length > 2) enemydata.twoShots.pop()
                     enemyModifier = { ...enemyModifier, twoShots: enemydata.twoShots }
                 }
                 if (enemydata.bluffing) {
                     enemydata.bluffing = 'ready'
+                    enemyModifier = { ...enemyModifier, bluffing: 'ready' }
                 }
+                //orange active passive ability trigger on use
                 if (orange) {
-                    handleOrange({ index, playerdata, enemyBoardState: enemydata.boardState, ...extrashot, playerModifier, enemyModifier, bluffing })
+                    handleOrange({ index, playerdata, enemyBoardState: enemydata.boardState, extrashot: playerModifier.extrashot, playerModifier, enemyModifier, bluffing })
                 }
-                if (!freeshot) {
-                    userData[message.id].turn = false
-                    userData[groups[message.id]].turn = true
+                if (message.retaliation) {
+                    index = retaliation({ playerdata, enemydata })
+                    playerModifier = { ...playerModifier, bluffArray: playerdata.bluffArray, retaliation: true }
+                    enemyModifier = { ...enemyModifier, bluffArray: playerdata.bluffArray, retaliation: true }
                 }
+                //hit logic
                 let shotresults = { missed: [], hit: [] }
                 for (const shot of index) {
                     if (enemydata.targets.includes(shot)) {
@@ -169,6 +115,7 @@ wss.on('connection', (ws, req) => {
                         enemydata.boardState[shot].state = 'missed'
                     }
                 }
+                //sink logic + extra conditions and output for character
                 if (cornershot) {
                     let { shipsSunk, hits } = cornerSinkCheck({ enemydata })
                     if (hits) shotresults = { ...shotresults, hit: [...hits] }
@@ -192,7 +139,7 @@ wss.on('connection', (ws, req) => {
                 targets: message.targets,
                 boardState: message.boardState
             }
-            if (userData.hasOwnProperty(message.id) && userData.hasOwnProperty(groups[message.id])) {
+            if (Object.keys(userData).includes(message.id) && Object.keys(userData).includes(groups[message.id])) {
                 if (Math.random() > 0.5) {
                     userData[groups[message.id]].turnNumber = 2
                     userData[message.id].turnNumber = 0

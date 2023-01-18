@@ -7,7 +7,9 @@ const fromEnemy = ({ message, ss }) => {
         ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     }
     if (!message.freeshot) ss.setTurn(true)
-
+    ss.setTurnNumber(message.turnNumber)
+    ss.setEnemyTurnNumber(message.enemyTurnNumber)
+    if (message.bluffing === 'ready') ss.setBluffing('ready')
     let index = message.shotresults.missed[0] || message.shotresults.hit[0]
 
     if (message.shotresults) {
