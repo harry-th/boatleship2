@@ -1,17 +1,17 @@
 import usePlacementLogic from "../hooks/usePlacement"
 
-let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules }) => {
+let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules, boatPlacements, setBoatPlacements }) => {
     const rules = ({ positions, targets }) => {
         if (positions.some((pos) => targets.includes(pos))) return true
     }
     const manipulatePos = (positions) => {
         for (let i = 0; i < positions.length; i++) {
-            if (positions[i] >= 100) positions[i] = positions[i] - 100
+            if (positions[i] >= 100) positions[i] = positions[i] - 99
         }
         return positions
     }
     // needs to figure out how to maniulate positions in placement in a modular manner
-    const cornerPlacement = usePlacementLogic({ socket, orientation, cookies, boardState, character: 'cornerman', setBoardState, boatrules, rules, manipulatePos })
+    const cornerPlacement = usePlacementLogic({ socket, orientation, cookies, boardState, character: 'cornerman', setBoardState, boatrules, boatPlacements, setBoatPlacements, rules, manipulatePos })
 
 
     const cornerHover = ({ index, gameProgress, boardState, boatLength, orientation, hoverState, setHoverState, }) => {
@@ -22,7 +22,7 @@ let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, b
                 coords.push(orientation === 'h' ? index + i : index + i * 10)
             }
             for (let i = 0; i < coords.length; i++) {
-                if (coords[i] >= 100) coords[i] = coords[i] - 100
+                if (coords[i] >= 100) coords[i] = coords[i] - 99
             }
             let newHoverState = { ...hoverState }
             for (let i = 0; i < coords.length; i++) {

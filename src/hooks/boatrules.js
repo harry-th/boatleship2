@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-const useBoatrules = (names) => {
+const useBoatrules = ({ names, setBoatPlacements }) => {
     const [numberOfBoats, setNumberOfBoats] = useState(4) //4 techincally
     const [boatLengths, setBoatLengths] = useState([2, 3, 4, 5])
     const [boatNames, setBoatNames] = useState(names || ['destroyer', 'cruiser', 'battleship', 'carrier'])
@@ -8,9 +8,17 @@ const useBoatrules = (names) => {
     const boatsRules = {
         current: {
             num: boatsPlaced,
-            undo: () => setBoatsPlaced(prev => prev <= 0 ? 0 : prev - 1),
+            undo: () => {
+                setBoatPlacements(prev => {
+                    delete prev[boatNames[boatsPlaced - 1]]
+                    console.log(prev)
+                    return { ...prev }
+                })
+                setBoatsPlaced(prev => prev <= 0 ? 0 : prev - 1)
+            },
             place: () => setBoatsPlaced(prev => prev + 1),
             set: setBoatsPlaced,
+            length: boatLengths[boatsPlaced],
             done: boatsPlaced === numberOfBoats ? true : false
         },
         currentBoat: {

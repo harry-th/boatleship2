@@ -10,12 +10,15 @@ import useCornerMan from '../characters/useCornerMan'
 const Board = ({ player, socket, cookies, boardState, setBoardState, enemyBoardState,
   orientation, gameProgress, turn, setTurn, boatNames, character }) => {
 
-  const boatrules = useBoatrules(boatNames)
 
   const [hoverState, setHoverState] = useState(generateBoard(true, true))
-  const placement = usePlacementLogic({ socket, orientation, cookies, character, boardState, boatrules, setBoardState })
+  const [boatPlacements, setBoatPlacements] = useState([])
+  const boatrules = useBoatrules({ names: boatNames, setBoatPlacements, setBoardState })
 
-  const { cornerPlacement, cornerHover } = useCornerMan({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules })
+
+  const placement = usePlacementLogic({ socket, orientation, cookies, character, boardState, boatrules, setBoardState, boatPlacements, setBoatPlacements })
+
+  const { cornerPlacement, cornerHover } = useCornerMan({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules, boatPlacements, setBoatPlacements })
 
   const handleClick = (index) => {
     if (gameProgress === 'placement') {
@@ -53,6 +56,10 @@ const Board = ({ player, socket, cookies, boardState, setBoardState, enemyBoardS
 
   return (
     <div>
+      <button onClick={
+
+        boatrules.current.undo
+      }>undo</button>
       <div className={styles.board}>
         {[...Array(100)].map((e, i) => <>{element(i)}</>)}
       </div>

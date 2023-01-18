@@ -25,7 +25,6 @@ const Dashboard = ({
     , setFreeShotMiss
     , enemyFreeShotMiss
     , setEnemyFreeShotMiss }) => {
-    console.log(freeShotMiss, enemyFreeShotMiss)
     return (
         <div className={styles.dashboard}>
             <div className={styles.logcontainer}>

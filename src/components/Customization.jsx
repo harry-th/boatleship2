@@ -109,7 +109,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                         periods()
 
                         setWaiting('waiting for match')
-                        socket.current.send(JSON.stringify({ ...cookies.user, character }))
+                        socket.current.send(JSON.stringify({ ...cookies.user, character, boatNames }))
                     }}>find game</button>
                     <button onClick={() => {
                         setDisplay('boats')
