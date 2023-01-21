@@ -100,12 +100,6 @@ wss.on('connection', (ws, req) => {
                     enemydata.bluffing = 'ready'
                     enemyModifier = { ...enemyModifier, bluffing: 'ready' }
                 }
-                console.log(playerdata.bluffing)
-                //orange active passive ability trigger on use
-                if (orange) {
-                    handleOrange({ index, playerdata, extrashot: playerModifier.extrashot, bluffing })
-                }
-
                 //hit logic
                 let shotresults = { missed: [], hit: [] }
                 console.log(index)
@@ -118,6 +112,16 @@ wss.on('connection', (ws, req) => {
                         enemydata.boardState[shot].state = 'missed'
                     }
                 }
+                //orange active passive ability trigger on use
+                if (orange) {
+                    let orangeShotResults = handleOrange({ index, playerdata, extrashot: playerModifier.extrashot, bluffing })
+                    playerModifier = { ...playerModifier, orangeShotResults }
+                    let enemyOrangeResults = { ...orangeShotResults }
+                    enemyOrangeResults.null = [...enemyOrangeResults.mine || [], ...enemyOrangeResults.null || []]
+                    enemyModifier = { ...enemyModifier, enemyOrangeResults }
+                }
+
+
                 //sink logic + extra conditions and output for character
                 if (cornershot) {
                     let { shipsSunk, hits } = cornerSinkCheck({ enemydata })
@@ -137,7 +141,7 @@ wss.on('connection', (ws, req) => {
                         playerModifier = { ...playerModifier, loss }
                     }
                 }
-                if (bluffing === 'bluffing') {
+                if (bluffing) {
                     wscodes[message.id].send(JSON.stringify({ ...playerModifier }))
                 } else
                     wscodes[message.id].send(JSON.stringify({ shotresults, ...playerModifier }))

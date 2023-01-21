@@ -4,7 +4,8 @@ const normalSinkCheck = ({ enemydata, }) => {
         return item.state === 'hit'
     }).map((el) => Number(el.id))
     for (const boat in enemydata.boatPlacements) {
-        if (!enemydata.boatPlacements[boat].sunk && enemydata.boatPlacements[boat].positions.every((b) => allHits.includes(b))) {
+        if (!enemydata.boatPlacements[boat].sunk
+            && enemydata.boatPlacements[boat].positions.every((b) => allHits.includes(b))) {
             enemydata.boatPlacements[boat].sunk = true
             shipsSunk.push(boat)
         }
@@ -18,7 +19,8 @@ const cornerSinkCheck = ({ enemydata }) => {
         return item.state === 'hit'
     }).map((el) => Number(el.id))
     for (const boat in enemydata.boatPlacements) {
-        if (!enemydata.boatPlacements[boat].sunk && allHits.includes(enemydata.boatPlacements[boat].positions[0]) && allHits.includes(enemydata.boatPlacements[boat].positions[enemydata.boatPlacements[boat].positions.length - 1])) {
+        if (!enemydata.boatPlacements[boat].sunk && allHits.includes(enemydata.boatPlacements[boat].positions[0])
+            && allHits.includes(enemydata.boatPlacements[boat].positions[enemydata.boatPlacements[boat].positions.length - 1])) {
             enemydata.boatPlacements[boat].sunk = true
             hits = [...enemydata.boatPlacements[boat].positions]
             for (let i = 1; i < enemydata.boatPlacements[boat].positions.length - 1; i++) {

@@ -19,37 +19,47 @@ const fromYou = ({ message, ss }) => {
             else if (shotresults.missed.length > 0) return [...prev, `You fired at ${shotresults.missed} but it missed!`]
         })
         ss.setEnemyBoardState(prev => {
-            for (const shot of shotresults.missed) {
-                prev[shot].state = 'missed'
-            }
-            for (const shot of shotresults.hit) {
-                prev[shot].state = 'hit'
+            for (const shots in shotresults) {
+                for (const shot of shotresults[shots]) {
+                    prev[shot].state = shots
+                }
             }
             return { ...prev }
         })
     }
+
+    let { orangeShotResults } = message
+    ss.setBoardState(prev => {
+        for (const shots in orangeShotResults) {
+            for (const shot of orangeShotResults[shots]) {
+                prev[shot].state = shots
+            }
+        }
+        return { ...prev }
+    })
+
     if (message?.shipsSunk?.length > 0) {
         ss.setMessages(prev => {
             return [...prev, `you have sunk their ${message.shipsSunk.join(' and ')}`]
         })
     }
-    if (message.orange) {
-        let index = message.shotresults.missed[0] || message.shotresults.hit[0]
-        ss.setBoardState(prev => {
-            if (!message.extrashot) {
-                let proSq = Object.values(prev).filter((item) => {
-                    return item.state === 'protected'
-                }).map(item => item.id)
-                for (const sq of proSq) {
-                    prev[sq].state = prev[sq].oldState
-                    delete prev[sq].oldState
-                }
-            }
-            prev[index].oldState ||= prev[index].state
-            prev[index].state = 'protected'
-            return { ...prev }
-        })
-    }
+    // if (message.orange) {
+    //     let index = message.shotresults.missed[0] || message.shotresults.hit[0]
+    //     ss.setBoardState(prev => {
+    //         if (!message.extrashot) {
+    //             let proSq = Object.values(prev).filter((item) => {
+    //                 return item.state === 'protected'
+    //             }).map(item => item.id)
+    //             for (const sq of proSq) {
+    //                 prev[sq].state = prev[sq].oldState
+    //                 delete prev[sq].oldState
+    //             }
+    //         }
+    //         prev[index].oldState ||= prev[index].state
+    //         prev[index].state = 'protected'
+    //         return { ...prev }
+    //     })
+    // }
     if (message.bluffArray && message.retaliation) {
         ss.setEnemyBoardState(prev => {
             for (const b of message.bluffArray) {

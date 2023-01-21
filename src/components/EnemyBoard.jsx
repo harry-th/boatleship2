@@ -7,7 +7,6 @@ const Board = ({ socket, cookies, enemyBoardState,
     shootLine,
     bluffing }) => {
 
-
     const handleClick = (index, modifier) => {
         if (turn) {
             if (bluffing) setEnemyBoardState(prev => {

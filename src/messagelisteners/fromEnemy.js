@@ -22,11 +22,28 @@ const fromEnemy = ({ message, ss }) => {
             else if (shotresults.missed.length > 0) return [...prev, `They fired at ${shotresults.missed} but it missed!`]
         })
         ss.setBoardState(prev => {
-            for (const shot of message.shotresults.missed) {
-                prev[shot].state = 'missed'
+            for (const shots in shotresults) {
+                for (const shot of shotresults[shots]) {
+                    if (shots === 'protected') {
+                        ss.setEnemyBoardState(prev => {
+                            prev[shot].state = shots
+                            console.log(prev, 'prev')
+                            return { ...prev }
+                        })
+                        continue;
+                    }
+                    prev[shot].state = shots
+                }
             }
-            for (const shot of message.shotresults.hit) {
-                prev[shot].state = 'hit'
+            return { ...prev }
+        })
+
+        let { enemyOrangeResults } = message
+        ss.setEnemyBoardState(prev => {
+            for (const shots in enemyOrangeResults) {
+                for (const shot of enemyOrangeResults[shots]) {
+                    prev[shot].state = shots
+                }
             }
             return { ...prev }
         })
@@ -64,23 +81,23 @@ const fromEnemy = ({ message, ss }) => {
         ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     }
 
-    if (message.orange) {
-        let index = message.shotresults.missed[0] || message.shotresults.hit[0]
-        ss.setEnemyBoardState(prev => {
-            if (!message.extrashot) {
-                let proSq = Object.values(prev).filter((item) => {
-                    return item.state === 'protected'
-                }).map(item => item.id)
-                for (const sq of proSq) {
-                    prev[sq].state = prev[sq].oldState
-                    delete prev[sq].oldState
-                }
-            }
-            prev[index].oldState ||= prev[index].state //very weird bug here
-            prev[index].state = 'protected'
-            return { ...prev }
-        })
-    }
+    // if (message.orange) {
+    //     let index = message.shotresults.missed[0] || message.shotresults.hit[0]
+    //     ss.setEnemyBoardState(prev => {
+    //         if (!message.extrashot) {
+    //             let proSq = Object.values(prev).filter((item) => {
+    //                 return item.state === 'protected'
+    //             }).map(item => item.id)
+    //             for (const sq of proSq) {
+    //                 prev[sq].state = prev[sq].oldState
+    //                 delete prev[sq].oldState
+    //             }
+    //         }
+    //         prev[index].oldState ||= prev[index].state //very weird bug here
+    //         prev[index].state = 'protected'
+    //         return { ...prev }
+    //     })
+    // }
 }
 
 export default fromEnemy
