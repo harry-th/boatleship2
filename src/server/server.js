@@ -65,10 +65,12 @@ wss.on('connection', (ws, req) => {
     ws.on('close', (code, reason) => {
         // TODO: handle socket close server-side (ex. send 'user disconnected')
     })
+
     ws.on('message', (message) => {
         message = JSON.parse(message)
-        const enemydata = userData[groups[message.id]]
-        const playerdata = userData[message.id]
+        const enemydata = userData[groups[id]]
+        const playerdata = userData[id]
+        //need a function here which checks if you can do whatever you are trying to
 
         if (message.callbluff) {
             callBluff({ playerdata, enemydata, playerAddress: wscodes[message.id], enemyAddress: wscodes[groups[message.id]] })
@@ -76,22 +78,29 @@ wss.on('connection', (ws, req) => {
         }
         if (message.shot) {
             console.log(message)
-            if (userData[message.id].turn) {
+            if (userData[id].turn) {
                 let { playerModifier, enemyModifier } = genericTurnAction({ playerdata, enemydata })
                 let { index, cornershot } = message
                 const { bluffing, orange } = message
-
+                let shotresults = { missed: [], hit: [] }
+                if (message.twoShot || message.shootline) {
+                    playerdata.charges -= 1
+                    playerModifier = { ...playerModifier, charges: playerdata.charges }
+                }
+                if (message.twoShot) index = playerdata.twoShots
                 enemyModifier = { ...enemyModifier, ...(orange && { orange: orange }) }
                 playerModifier = { ...playerModifier, ...(orange && { orange: orange }) }
-
                 if (message.retaliation) {
+                    //you need to unsink boats sunk while bluffing
                     index = retaliation({ playerdata, enemydata })
-                    playerModifier = { ...playerModifier, bluffArray: playerdata.bluffArray, retaliation: true }
-                    enemyModifier = { ...enemyModifier, bluffArray: playerdata.bluffArray, retaliation: true }
+                    shotresults.null = [...playerdata.bluffArray]
+                    playerModifier = { ...playerModifier, bluffing: 'fired' }
+                    playerdata.bluffing = 'fired'
+                    delete playerdata.bluffArray
                 }
                 //updates enemy powers
                 if (userInfo[groups[message.id]].character === 'lineman') {
-                    enemydata.twoShots = enemydata.twoShots ? [index[0], ...enemydata.twoShots] : [index[0]]
+                    enemydata.twoShots = enemydata.twoShots ? [index[0], ...enemydata.twoShots] : index
                     if (enemydata.twoShots.length > 2) enemydata.twoShots.pop()
                     enemyModifier = { ...enemyModifier, twoShots: enemydata.twoShots }
                 }
@@ -101,7 +110,6 @@ wss.on('connection', (ws, req) => {
                     enemyModifier = { ...enemyModifier, bluffing: 'ready' }
                 }
                 //hit logic
-                let shotresults = { missed: [], hit: [] }
                 console.log(index)
                 for (const shot of index) {
                     if (enemydata.targets.includes(shot)) {
@@ -141,18 +149,21 @@ wss.on('connection', (ws, req) => {
                         playerModifier = { ...playerModifier, loss }
                     }
                 }
-                if (bluffing) {
-                    wscodes[message.id].send(JSON.stringify({ ...playerModifier }))
+                if (bluffing === 'bluffing' || bluffing === 'ready') {
+                    wscodes[message.id].send(JSON.stringify({ shotresults: { guess: index }, bluffing, ...playerModifier }))
                 } else
                     wscodes[message.id].send(JSON.stringify({ shotresults, ...playerModifier }))
                 wscodes[groups[message.id]].send(JSON.stringify({ shotresults, ...enemyModifier }))
             }
         }
         if (message.boatdata) {
+            let charges
+            if (userInfo[message.id].character === 'lineman') charges = { charges: 4 }
             userData[message.id] = {
                 boatPlacements: message.boatPlacements,
                 targets: message.targets,
-                boardState: message.boardState
+                boardState: message.boardState,
+                ...charges
             }
             if (Object.keys(userData).includes(message.id) && Object.keys(userData).includes(groups[message.id])) {
                 if (Math.random() > 0.5) {

@@ -36,6 +36,17 @@
     }
   }
   .boatform {
+    .chooseBoatNames {
+      background-color: lightblue;
+      color: red;
+      padding: 10px;
+      cursor: pointer;
+      transition: color 1s, background-color 1s;
+      &:hover {
+        color: lightblue;
+        background-color: red;
+      }
+    }
     form {
       display: flex;
       flex-direction: column;

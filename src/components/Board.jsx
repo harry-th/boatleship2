@@ -7,7 +7,7 @@ import useBoatrules from '../hooks/boatrules'
 import usePlacementLogic from '../hooks/usePlacement'
 import useCornerMan from '../characters/useCornerMan'
 
-const Board = ({ player, socket, cookies, boardState, setBoardState, enemyBoardState,
+const Board = ({ player, socket, cookies, boardState, setBoardState,
   orientation, gameProgress, turn, setTurn, boatNames, character }) => {
 
 
@@ -57,7 +57,6 @@ const Board = ({ player, socket, cookies, boardState, setBoardState, enemyBoardS
   return (
     <div>
       <button onClick={
-
         boatrules.current.undo
       }>undo</button>
       <div className={styles.board}>

@@ -16,9 +16,6 @@
     }
     background-color: greenyellow;
   }
-  &.twoShot {
-    background-color: yellow;
-  }
   &.nope {
     background-color: rgb(134, 42, 42);
   }
@@ -48,6 +45,9 @@
   }
   &.mine {
     background-color: black;
+  }
+  &.twoShot {
+    background-color: yellow;
   }
   &.hover {
     background-color: black;

@@ -24,7 +24,9 @@ const Dashboard = ({
     , freeShotMiss
     , setFreeShotMiss
     , enemyFreeShotMiss
-    , setEnemyFreeShotMiss }) => {
+    , setEnemyFreeShotMiss
+    , setColors
+    , setNothing }) => {
     return (
         <div className={styles.dashboard}>
             <div className={styles.logcontainer}>
@@ -46,9 +48,7 @@ const Dashboard = ({
                         enemyBoardState={enemyBoardState} enemyTargets={enemyTargets} cookies={cookies}
                         setEnemyBoardState={setEnemyBoardState} />
                     }
-                    {character === 'lineman' && <LineManUI turn={turn} setTurn={setTurn} enemyBoardState={enemyBoardState}
-                        enemyTargets={enemyTargets} enemyBoatPlacements={enemyBoatPlacements} setEnemyBoatPlacements={setEnemyBoatPlacements}
-                        setEnemyBoardState={setEnemyBoardState} socket={socket} cookies={cookies} setTurnNumber={setTurnNumber} turnNumber={turnNumber} setFreeShotMiss={setFreeShotMiss} />
+                    {character === 'lineman' && <LineManUI turn={turn} enemyBoardState={enemyBoardState} setEnemyBoardState={setEnemyBoardState} socket={socket} cookies={cookies} setTurn={setTurn} setColors={setColors} />
                     }
                     {Object.values(enemyBoardState).some(i => i.state === 'protected') && <Callbluffbutton setTurn={setTurn}
                         wasBluffing={wasBluffing} boardState={boardState} cookies={cookies} socket={socket} setFreeShotMiss={setFreeShotMiss} />}

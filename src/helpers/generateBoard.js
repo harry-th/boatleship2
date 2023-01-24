@@ -11,5 +11,4 @@ const generateBoard = (state, hover) => {
     let board = setBoard()
     return board
 }
-
 export default generateBoard

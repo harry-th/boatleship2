@@ -17,9 +17,6 @@
   content: "?";
   color: black;
 }
-.square.twoShot {
-  background-color: yellow;
-}
 .square.nope {
   background-color: rgb(134, 42, 42);
 }
@@ -49,6 +46,9 @@
 }
 .square.mine {
   background-color: black;
+}
+.square.twoShot {
+  background-color: yellow;
 }
 .square.hover {
   background-color: black;

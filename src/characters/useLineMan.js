@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const useLineMan = () => {
     const [lastShots, setLastShots] = useState([])
     const [selection, setSelection] = useState(null)
     const [selecting, setSelecting] = useState(sessionStorage.getItem('selecting') ? JSON.parse(sessionStorage.getItem('selecting')) : false)
-    const [charges, setCharges] = useState(sessionStorage.getItem('charges') ? JSON.parse(sessionStorage.getItem('charges')) : 4)
+    const [charges, setCharges] = useState(4)
 
 
 
@@ -20,7 +20,7 @@ const useLineMan = () => {
         if (!selecting) {
             handleClick(index)
         } else {
-            if (!selection) {
+            if (!selection && selection !== 0) {
                 setSelection(index)
                 setEnemyBoardState(prev => {
                     prev[index].hover = 'green'
@@ -36,9 +36,8 @@ const useLineMan = () => {
                 return
             }
             if (enemyBoardState[index].state !== 'selectable' && index) return
-            //**hhere */
-            if (selection) {
-
+            //**here */
+            if (selection || selection === 0) {
                 let result = []
                 const checkSquares = (i, result) => {
                     if (boardState[i].state === 'missed' || boardState[i].state === 'hit' || boardState[i].hover === 'protected') {
@@ -84,7 +83,7 @@ const useLineMan = () => {
                     for (let i = start + 1; i < end; i++) {
                         if (!checkSquares(i, result)) return
                     }
-                } else if (((selection % (Math.floor(selection / 10) * 10)) || selection) === ((index % (Math.floor(index / 10) * 10)) || index)) {
+                } else if ((((selection % (Math.floor(selection / 10) * 10)) + 1 || selection + 1) === ((index % (Math.floor(index / 10) * 10)) + 1 || index + 1))) {
                     let start, end
                     if (selection > index) {
                         start = index
@@ -109,50 +108,51 @@ const useLineMan = () => {
                     if (enemyBoardState[square].state === 'selectable') newEnemyBoardState[square].state = 'missed'
                 }
                 setEnemyBoardState(newEnemyBoardState)
-                setCharges(prev => prev - 1)
                 setSelecting(false)
-                handleClick(result)
+                handleClick(result, { shootline: true })
             }
         }
     }
     const LineManUI = ({ turn, enemyBoardState, setEnemyBoardState, socket, cookies, setTurn }) => {
         return (
-            <div onMouseLeave={
-                (e) => {
-                    e.stopPropagation()
+            <div
+
+                onMouseLeave={(e) => {
                     setEnemyBoardState(prev => {
                         if (lastShots[0] && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
                         if (lastShots[1] && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
                         return { ...prev }
                     })
-                }
-            }>
+                }}
+            >
                 charges: {charges}
                 <button
+                    onClick={() => {
+                        if (turn && !selecting && charges) {
+                            socket.current.send(JSON.stringify({ shot: true, id: cookies.get('user').id, twoShot: true }))
+                            setTurn(false)
+                        }
+                    }}
                     onMouseEnter={(e) => {
-                        e.stopPropagation()
                         if (turn) {
-
                             setEnemyBoardState(prev => {
+                                let isNew = false
                                 if (lastShots[0] && prev[lastShots[0]].hover !== 'twoShot') {
                                     prev[lastShots[0]].last = prev[lastShots[0]].hover
                                     prev[lastShots[0]].hover = 'twoShot'
+                                    isNew = true
                                 }
                                 if (lastShots[1] && prev[lastShots[1]].hover !== 'twoShot') {
                                     prev[lastShots[1]].last = prev[lastShots[1]].hover
                                     prev[lastShots[1]].hover = 'twoShot'
+                                    isNew = true
                                 }
-                                return { ...prev }
+                                if (isNew) {
+                                    return { ...prev }
+                                } else {
+                                    return prev
+                                }
                             })
-
-                        }
-                    }}
-                    // onMouseLeave={}
-
-                    onClick={() => {
-                        if (turn && !selecting && charges) {
-                            socket.current.send(JSON.stringify({ shot: true, index: lastShots, id: cookies.get('user').id, twoShot: true }))
-                            setTurn(false)
                         }
                     }}>
                     fireLastShots

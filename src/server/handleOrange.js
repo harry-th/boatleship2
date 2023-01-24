@@ -12,12 +12,12 @@ const handleProtection = ({ index, boardState, extrashot }) => {
     }
     boardState[index].oldState ||= boardState[index].state
     boardState[index].state = 'protected'
-    orangeShotResults.protected = [index]
+    orangeShotResults.protected = index
     return orangeShotResults
 }
 const handleBluffing = ({ playerdata, index }) => {
     if (!playerdata.bluffing) playerdata.bluffing = 'bluffing'
-    playerdata.bluffArray = playerdata.bluffArray ? [...playerdata.bluffArray, index] : [index]
+    playerdata.bluffArray = playerdata.bluffArray ? [...playerdata.bluffArray, ...index] : index
 }
 const handleOrange = ({ index, playerdata, extrashot, bluffing }) => {
     let orangeShotResults = handleProtection({ index, boardState: playerdata.boardState, extrashot })

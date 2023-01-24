@@ -1,15 +1,15 @@
 const fromEnemy = ({ message, ss }) => {
     console.log({ enemy: message })
-    if (message.win || message.loss) ss.setGameProgress('gameover')
     if (!message.freeshot) ss.setTurn(true)
     if (message.enemyfreeshotmiss >= 0) ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     ss.setTurnNumber(message.turnNumber)
     ss.setEnemyTurnNumber(message.enemyTurnNumber)
-    if (message.bluffing === 'ready') ss.setBluffing('ready')
-
+    if (message.bluffing === 'ready') ss.setBluffing(message.bluffing)
+    if (message.twoShots) {
+        ss.setLastShots(message.twoShots)
+    }
     if (message.shotresults) {
         let { shotresults } = message
-        console.log(shotresults)
         ss.setMessages(prev => {
             if (shotresults.hit.length > 1 || shotresults.missed.length > 1) {
                 let string = ''
@@ -24,14 +24,6 @@ const fromEnemy = ({ message, ss }) => {
         ss.setBoardState(prev => {
             for (const shots in shotresults) {
                 for (const shot of shotresults[shots]) {
-                    if (shots === 'protected') {
-                        ss.setEnemyBoardState(prev => {
-                            prev[shot].state = shots
-                            console.log(prev, 'prev')
-                            return { ...prev }
-                        })
-                        continue;
-                    }
                     prev[shot].state = shots
                 }
             }
@@ -53,14 +45,8 @@ const fromEnemy = ({ message, ss }) => {
             return [...prev, `They sunk your ${message.shipsSunk.join(' and ')}`]
         })
     }
-    if (message.bluffArray && !message.callbluff) {
-        ss.setBoardState(prev => {
-            for (const b of message.bluffArray) {
-                prev[b].state = null
-            }
-            return { ...prev }
-        })
-    } else if (message.bluffArray && message.callbluff === 'success') {
+
+    if (message.bluffArray && message.callbluff === 'success') {
         ss.setMessages(prev => {
             return [...prev, `They called your bluff!`]
         })
@@ -80,24 +66,6 @@ const fromEnemy = ({ message, ss }) => {
         })
         ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     }
-
-    // if (message.orange) {
-    //     let index = message.shotresults.missed[0] || message.shotresults.hit[0]
-    //     ss.setEnemyBoardState(prev => {
-    //         if (!message.extrashot) {
-    //             let proSq = Object.values(prev).filter((item) => {
-    //                 return item.state === 'protected'
-    //             }).map(item => item.id)
-    //             for (const sq of proSq) {
-    //                 prev[sq].state = prev[sq].oldState
-    //                 delete prev[sq].oldState
-    //             }
-    //         }
-    //         prev[index].oldState ||= prev[index].state //very weird bug here
-    //         prev[index].state = 'protected'
-    //         return { ...prev }
-    //     })
-    // }
 }
 
 export default fromEnemy

@@ -36,6 +36,17 @@
   font-size: 10px;
   margin: 2px;
 }
+.customization .boatform .chooseBoatNames {
+  background-color: lightblue;
+  color: red;
+  padding: 10px;
+  cursor: pointer;
+  transition: color 1s, background-color 1s;
+}
+.customization .boatform .chooseBoatNames:hover {
+  color: lightblue;
+  background-color: red;
+}
 .customization .boatform form {
   display: flex;
   flex-direction: column;

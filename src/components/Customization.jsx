@@ -1,20 +1,21 @@
 import { useState } from 'react'
 import styles from '../styles/Customization.module.css'
 
-const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCookie, cookies, socket }) => {
+const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies, socket }) => {
+    console.log(cookies.get('user'))
     const [name, setName] = useState(null)
-    const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user').name !== 'noName' ? 'done' : 'name')
+    const [display, setDisplay] = useState(!character ? 'character' : !cookies.get('user') ? 'done' : 'name')
     const [waiting, setWaiting] = useState(null)
     const setInformation = (e) => {
         e.preventDefault()
         let names = Object.values(e.target).filter(i => i.name).map(item => item.value)
         let name = names.shift()
+        cookies.set('user', { ...cookies.get('user'), name })
         let newBoatNames = [...boatNames]
         for (let i = 0; i < names.length; i++) {
             newBoatNames[i] = names[i] || newBoatNames[i]
         }
         setBoatNames(newBoatNames)
-        // setCookie('user', { ...cookies.get('user'), name })
         setDisplay('done')
     }
 
@@ -23,7 +24,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
             {!character && <div className={styles.characterselect}>
                 <div onClick={() => {
                     setCharacter('orangeman')
-                    if (cookies.get('user').name === 'noName') setDisplay('name')
+                    if (!cookies.get('user').name) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>orange mode</h5>
                     <ul>
@@ -35,7 +36,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                 </div>
                 <div onClick={() => {
                     setCharacter('lineman')
-                    if (cookies.get('user').name === 'noName') setDisplay('name')
+                    if (!cookies.get('user').name) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>line mode</h5>
                     <ul>
@@ -47,7 +48,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                 </div>
                 <div onClick={() => {
                     setCharacter('cornerman')
-                    if (cookies.get('user').name === 'noName') setDisplay('name')
+                    if (!cookies.get('user')) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>corner mode</h5>
                     <ul>
@@ -57,7 +58,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
                 </div>
                 {/* <div onClick={() => {
                     setCharacter('none')
-                    if (cookies.get('user').name === 'noName') setDisplay('name')
+                    if (!cookies.get('user')) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>default mode</h5>
                     <ul>
@@ -69,11 +70,11 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, setCo
             <div onClick={() => {
                 setName(null)
                 setDisplay('name')
-            }}> {name || (cookies.get('user').name !== 'noName' ? cookies.get('user').name : null)} {cookies.get('user').name !== 'noName' && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}</div>
+            }}> {name || (!cookies.get('user') ? cookies.get('user').name : null)} {!cookies.get('user').name && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}</div>
             <div className={styles.boatform}>
-                {(name && display === 'name') && <p>choose Boat names?</p>}
+                {(name && display === 'name') && <p className={styles.chooseBoatNames}>choose Boat names?</p>}
                 <form onSubmit={(e) => setInformation(e)}>
-                    {(display === 'name' && cookies.get('user').name === 'noName') && <div>
+                    {(display === 'name' && !cookies.get('user').name) && <div>
                         <div>
                             <label htmlFor='name'>name</label>
                         </div>
