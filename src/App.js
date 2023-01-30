@@ -13,6 +13,7 @@ import useOrangeMan from './characters/useOrangeMan';
 import useLineMan from './characters/useLineMan';
 import fromYou from './messagelisteners/fromYou';
 import fromEnemy from './messagelisteners/fromEnemy';
+import useTimer from './hooks/timer';
 
 
 const cookies = new Cookies()
@@ -32,13 +33,14 @@ function App() {
   const [enemyTurnNumber, setEnemyTurnNumber] = useState(turnNumber)
 
   const [enemyBoardState, setEnemyBoardState] = useState(() => generateBoard(true, true))
-  const [enemyInfo, setEnemyInfo] = useState()
+  const [enemyInfo, setEnemyInfo] = useState({})
 
   const [character, setCharacter] = useState(false)
 
   const [turn, setTurn] = useState(true)
   const [orientation, setOrientation] = useState('h')
 
+  const timer = useTimer()
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan({ gameProgress, setGameProgress })
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
   // websocket connection
@@ -81,7 +83,8 @@ function App() {
   useEffect(() => {
     let ss = {
       setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setCharacter,
-      setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber, setCharges, setEnemyInfo
+      setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber, setCharges, setEnemyInfo,
+      timer
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
@@ -122,9 +125,20 @@ function App() {
       }
       if (message.win) {
         cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1 })
+        if (message.hasDisconnected) {
+          timer.clear(2)
+          setEnemyInfo(prev => {
+            prev.disconnected = true
+            return prev
+          })
+        }
         setGameProgress('winning screen')
       }
       if (message.loss) {
+        if (message.hasDisconnected) {
+          timer.clear(1)
+          alert('ran out of time')
+        }
         cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1 })
         setGameProgress('losing screen')
       }
@@ -174,7 +188,7 @@ function App() {
     return () => {
       socket.current.removeEventListener('message', messageListener)
     }
-  }, [bluffing, setLastShots, setBluffing, setCharges])
+  }, [bluffing, setLastShots, setBluffing, setCharges, timer])
   return (
     <div className={styles.app}>
       <button onClick={() => {
@@ -197,6 +211,7 @@ function App() {
             cookies={cookies} setCookie={cookies.set}
             boardState={boardState} setBoardState={setBoardState}
             orientation={orientation} gameProgress={gameProgress} setGameProgress={setGameProgress}
+            timer={timer}
           />
           <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
             cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
@@ -204,7 +219,7 @@ function App() {
             enemyInfo={enemyInfo}
             setBoardState={setBoardState} gameProgress={gameProgress} setGameProgress={setGameProgress}
             shootLine={shootLine}
-            bluffing={bluffing}
+            bluffing={bluffing} timer={timer}
           />
           <Dashboard
             messages={messages}
@@ -226,6 +241,7 @@ function App() {
             setFreeShotMiss={setFreeShotMiss}
             enemyFreeShotMiss={enemyFreeShotMiss}
             setEnemyFreeShotMiss={setEnemyFreeShotMiss}
+            enemyInfo={enemyInfo}
           />
         </> : cookies.get('user')?.state === 'matching' ?
           <>

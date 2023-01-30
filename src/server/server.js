@@ -62,10 +62,12 @@ wss.on('connection', (ws, req) => {
         console.log('new user:', id)
     }
     else if (groups[id]) {
-        wscodes[id] = ws
-        wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', messagetype: 'reconnect' }))
-        let enemyInfo = userInfo[groups[id]]
+        clearTimeout(userInfo[id].disconnectTimerCode)
+        delete userInfo[id].disconnectTimerCode
         if (games[userInfo[id].currentGame].state === 'ongoing') {
+            wscodes[id] = ws
+            wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', messagetype: 'reconnect' }))
+            let enemyInfo = userInfo[groups[id]]
             let enemyBoardState = JSON.parse(JSON.stringify(userData[groups[id]].boardState))
             for (const sq in enemyBoardState) {
                 if (enemyBoardState[sq].state === 'mine') enemyBoardState[sq].state = null
@@ -77,6 +79,9 @@ wss.on('connection', (ws, req) => {
             }
             ws.send(JSON.stringify({ for: 'player', messagetype: 'reconnect', info: { enemyInfo, ...userInfo[id] }, data: { enemyBoardState, ...userData[id] } }))
         } else if (games[userInfo[id].currentGame].state === 'placement') {
+            wscodes[id] = ws
+            wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', messagetype: 'reconnect' }))
+            let enemyInfo = userInfo[groups[id]]
             let boardState
             if (userData[id]?.boardState) boardState = { boardState: userData[id].boardState }
             ws.send(JSON.stringify({ for: 'player', messagetype: 'reconnect', info: { enemyInfo, ...userInfo[id], }, ...boardState }))
@@ -86,10 +91,24 @@ wss.on('connection', (ws, req) => {
     wscodes[id] = ws
 
     ws.on('close', (code, reason) => {
-        if (code === 1001) {
+        if (code === 1001 && !userInfo[id].disconnectTimerCode) {
+            clearTimeout(userData[id].turnTimerCode)
+            clearTimeout(userData[groups[id]].turnTimerCode)
             console.log(id, 'closed')
-            if (groups[id]) {
-                wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', messagetype: 'disconnect' }))
+            if (groups[id] && (games[userInfo[id].currentGame].state === 'ongoing' || games[userInfo[id].currentGame].state === 'placement')) {
+                wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', time: 60, messagetype: 'disconnect' }))
+                userInfo[id].disconnectTimerCode = setTimeout(() => {
+                    clearTimeout(userData[id].turnTimerCode)
+                    clearTimeout(userData[groups[id]].turnTimerCode)
+                    games[userInfo[id].currentGame] = {
+                        state: 'finished by timeout', winnerId: id, loserId: groups[id],
+                        winner: userInfo[id].name, loser: userInfo[groups[id]].name,
+                        winnerCharacter: userInfo[id].character, loserCharacter: userInfo[groups[id]].character
+                    }
+                    wscodes[groups[id]].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true }))
+                    delete userData[groups[id]]
+                    delete userData[id]
+                }, 60000)
             }
         }
     })
@@ -106,28 +125,29 @@ wss.on('connection', (ws, req) => {
         if (groups[id]) {
             if (message.newgame) {
                 wscodes[groups[id]].send(JSON.stringify({ hasLeft: true }))
+                delete playerinfo.lookingForRematch
+                delete enemyinfo.lookingForRematch
                 delete groups[groups[id]]
                 delete groups[id]
-                delete playerinfo.lookingForRematch
             }
             if (message.chat) {
                 wscodes[groups[id]].send(JSON.stringify({ chat: message.chat }))
                 wscodes[id].send(JSON.stringify({ chat: message.chat }))
             }
             if (message.rematch) {
-                if (enemyinfo.lookingForRematch) {
+                if (enemyinfo.lookingForRematch === id) {
                     delete enemyinfo.lookingForRematch
                     wscodes[id].send(JSON.stringify({ rematchAccepted: true, enemyinfo }))
                     wscodes[groups[id]].send(JSON.stringify({ rematchAccepted: true, enemyinfo: playerinfo }))
                     return
                 }
-                if (!playerinfo.lookingForRematch) {
-                    playerinfo.lookingForRematch = true
+                if (playerinfo.lookingForRematch !== groups[id]) {
+                    playerinfo.lookingForRematch = groups[id]
                     wscodes[groups[id]].send(JSON.stringify({ lookingForRematch: true }))
                 }
             }
             if (message.callbluff) {
-                callBluff({ playerdata, enemydata, playerAddress: wscodes[id], enemyAddress: wscodes[groups[id]] })
+                callBluff({ id, userInfo, games, wscodes, groups, userData })
                 return
             }
             if (message.shot) {
@@ -140,7 +160,7 @@ wss.on('connection', (ws, req) => {
                     if (playerinfo.character === 'orangeman') {
                         if (message.retaliation && playerdata.bluffing !== 'ready') return
                     }
-                    let { playerModifier, enemyModifier } = genericTurnAction({ playerdata, enemydata })
+                    let { playerModifier, enemyModifier } = genericTurnAction({ id, userInfo, games, wscodes, groups, userData })
                     const { bluffing } = message
                     let shotresults = { missed: [], hit: [] }
                     if (playerinfo.character === 'lineman') {
@@ -206,6 +226,7 @@ wss.on('connection', (ws, req) => {
                     //win check
                     if (playerModifier.shipsSunk.length > 0) {
                         if (Object.values(enemydata.boatPlacements).filter(i => i.sunk).length === 4) { //all ships sunk send win type message
+                            clearTimeout(userData[id].turnTimerCode)
                             games[playerinfo.currentGame] = {
                                 state: 'finished', winnerId: id, loserId: groups[id],
                                 winner: playerinfo.name, loser: enemyinfo.name,

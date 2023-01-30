@@ -30,6 +30,7 @@ const fromYou = ({ message, ss }) => {
     ss.setTurnNumber(message.turnNumber)
     if (message.freeshotmiss >= 0) ss.setFreeShotMiss(message.freeshotmiss)
     if (message.freeshot) ss.setTurn(true)
+    else ss.timer.clear(1)
     if (message.bluffing) ss.setBluffing(message.bluffing)
     if (message.charges || message.charges === 0) ss.setCharges(message.charges)
     if (message.shotresults) {

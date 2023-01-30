@@ -25,7 +25,8 @@ const Dashboard = ({
     , setFreeShotMiss
     , enemyFreeShotMiss
     , setEnemyFreeShotMiss
-    , setColors }) => {
+    , setColors
+    , enemyInfo }) => {
     return (
         <div className={styles.dashboard}>
             <div className={styles.logcontainer}>
@@ -49,7 +50,7 @@ const Dashboard = ({
                     }
                     {character === 'lineman' && <LineManUI turn={turn} enemyBoardState={enemyBoardState} setEnemyBoardState={setEnemyBoardState} socket={socket} cookies={cookies} setTurn={setTurn} setColors={setColors} />
                     }
-                    {Object.values(enemyBoardState).some(i => i.state === 'protected') && <Callbluffbutton setTurn={setTurn}
+                    {enemyInfo.character === 'orangeman' && <Callbluffbutton setTurn={setTurn}
                         wasBluffing={wasBluffing} boardState={boardState} cookies={cookies} socket={socket} setFreeShotMiss={setFreeShotMiss} />}
                 </div>
             </div>

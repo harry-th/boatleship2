@@ -4,7 +4,7 @@ import styles from '../styles/Board.module.css'
 
 const Board = ({ socket, cookies, enemyBoardState,
     gameProgress, turn, setTurn, character, boardState, setEnemyBoardState, setBoardState,
-    shootLine, enemyInfo, bluffing }) => {
+    shootLine, enemyInfo, bluffing, timer }) => {
 
     const handleClick = (index, modifier) => {
         if (turn) {
@@ -59,7 +59,7 @@ const Board = ({ socket, cookies, enemyBoardState,
             <button
                 onClick={() => console.log(boardState)}
             >message</button>
-            <p>{enemyInfo?.name} {enemyInfo?.status === 'disconnected' && <span>has disconnected!</span>}</p>
+            <p>{enemyInfo?.name} {enemyInfo?.status === 'disconnected' && <span>has disconnected!</span>} {timer.timer2}</p>
             <div className={styles.board}>
                 {[...Array(100)].map((e, i) => <>{element(i)}</>)}
             </div>

@@ -8,7 +8,7 @@ import usePlacementLogic from '../hooks/usePlacement'
 import useCornerMan from '../characters/useCornerMan'
 
 const Board = ({ player, socket, cookies, boardState, setBoardState,
-  orientation, gameProgress, turn, setTurn, boatNames, character }) => {
+  orientation, gameProgress, turn, setTurn, boatNames, character, timer }) => {
 
 
   const [hoverState, setHoverState] = useState(generateBoard(true, true))
@@ -56,6 +56,7 @@ const Board = ({ player, socket, cookies, boardState, setBoardState,
 
   return (
     <div>
+      {timer.timer1}
       {gameProgress === 'placement' && <button onClick={
         boatrules.current.undo
       }>undo</button>}

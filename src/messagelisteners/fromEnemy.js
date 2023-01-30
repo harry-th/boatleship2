@@ -5,9 +5,11 @@ const fromEnemy = ({ message, ss }) => {
             if (prev) prev.status = 'disconnected'
             return { ...prev }
         })
+        ss.timer.setStart(2, message.time)
         return
     }
     if (message.messagetype === 'reconnect') {
+        ss.timer.clear(2)
         ss.setEnemyInfo(prev => {
             if (prev.status === 'disconnected') delete prev.status
             return { ...prev }
@@ -17,7 +19,10 @@ const fromEnemy = ({ message, ss }) => {
 
 
 
-    if (!message.freeshot) ss.setTurn(true)
+    if (!message.freeshot) {
+        ss.setTurn(true)
+        ss.timer.setStart(1, message.time)
+    }
     if (message.enemyfreeshotmiss >= 0) ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     ss.setTurnNumber(message.turnNumber)
     ss.setEnemyTurnNumber(message.enemyTurnNumber)

@@ -2,6 +2,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, 
     return (<>
         <div>
             <header>
+                {enemyInfo?.disconnected && <span>your opponent has disconnected</span>}
                 {gameProgress === 'winning screen' ? <h2>you have won! congragurblations</h2> : <h2>you have lost! how embarrasing!</h2>}
             </header>
             {enemyInfo?.lookingForRematch !== 'left' && <button onClick={() => {
