@@ -8,13 +8,18 @@ const useBoatrules = ({ names, setBoatPlacements }) => {
     const boatsRules = {
         current: {
             num: boatsPlaced,
-            undo: () => {
-                setBoatPlacements(prev => {
-                    delete prev[boatNames[boatsPlaced - 1]]
-                    console.log(prev)
-                    return { ...prev }
-                })
-                setBoatsPlaced(prev => prev <= 0 ? 0 : prev - 1)
+            undo: () => { // known bug, if you match and place your boats and then refresh before the opponent, 
+                //you can replace your boats and change the server(no gameplay problems however) and if you match before you place the boats again fully 
+                //your boardstate will not match the server, though this can be rectified by refeshing 
+                if (boatsPlaced !== numberOfBoats) {
+                    setBoatPlacements(prev => {
+                        console.log(Array.isArray(prev))
+                        if (Array.isArray(prev)) return prev
+                        delete prev[boatNames[boatsPlaced - 1]]
+                        return { ...prev }
+                    })
+                    setBoatsPlaced(prev => prev <= 0 ? 0 : prev - 1)
+                }
             },
             place: () => setBoatsPlaced(prev => prev + 1),
             set: setBoatsPlaced,

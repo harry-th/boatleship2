@@ -19,32 +19,28 @@ const cookies = new Cookies()
 
 function App() {
 
-  let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
-
 
   const socket = useRef(null);
-  const [nothing, setNothing] = useState(false)
   const [gameProgress, setGameProgress] = useState('preplacement')
   const [boardState, setBoardState] = useState(() => generateBoard(true, true))
   const [boatNames, setBoatNames] = useState(['destroyer', 'cruiser', 'battleship', 'carrier'])
   const [messages, setMessages] = useState([])
+  const [chat, setChat] = useState([])
   const [freeShotMiss, setFreeShotMiss] = useState(0)
   const [enemyFreeShotMiss, setEnemyFreeShotMiss] = useState(0)
   const [turnNumber, setTurnNumber] = useState(0)
   const [enemyTurnNumber, setEnemyTurnNumber] = useState(turnNumber)
 
   const [enemyBoardState, setEnemyBoardState] = useState(() => generateBoard(true, true))
-  const [enemyName, setEnemyName] = useState()
+  const [enemyInfo, setEnemyInfo] = useState()
 
   const [character, setCharacter] = useState(false)
 
   const [turn, setTurn] = useState(true)
   const [orientation, setOrientation] = useState('h')
 
-
+  let { bluffing, setBluffing, OrangeManUI } = useOrangeMan({ gameProgress, setGameProgress })
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
-
-
   // websocket connection
   // TODO: figure out how to deal with dependencies in `onmessage` without creating a new websocket every time
   // I think there are some issues with having these inside an effect callback
@@ -66,28 +62,79 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (gameProgress !== 'placement' && gameProgress !== 'ongoing') {
+      setFreeShotMiss(0)
+      setEnemyFreeShotMiss(0)
+      setTurnNumber(0)
+      setEnemyTurnNumber(0)
+      setBoardState(() => generateBoard(true, true))
+      setMessages([])
+      setEnemyBoardState(() => generateBoard(true, true))
+    }
+  }, [gameProgress])
+
+
   // socket open
+
+
   useEffect(() => {
     let ss = {
-      setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing,
-      setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber, setCharges
+      setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setCharacter,
+      setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber, setCharges, setEnemyInfo
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
-      if (message.type === 'unapproved action') {
-        setTurn(true)
-      }
-      if (message.win) setGameProgress('winning screen')
-      if (message.loss) setGameProgress('losing screen')
+      console.log(message)
 
-      // console.log(message)
+      if (message.chat) {
+        setChat(prev => [...prev, message.chat])
+      }
+      if (message.hasLeft) {
+        setEnemyInfo(prev => {
+          prev.lookingForRematch = 'left'
+          return { ...prev }
+        })
+      }
+      if (message.lookingForRematch) {
+        setEnemyInfo(prev => {
+          prev.lookingForRematch = 'looking'
+          return { ...prev }
+        })
+      }
+      if (message.rematchAccepted) {
+        cookies.set('user', { ...cookies.get('user'), state: 'matched' })
+        setFreeShotMiss(0)
+        setEnemyFreeShotMiss(0)
+        setTurnNumber(0)
+        setEnemyTurnNumber(0)
+        setBoardState(() => generateBoard(true, true))
+        setMessages([])
+        setEnemyBoardState(() => generateBoard(true, true))
+        const { enemyinfo } = message
+        setEnemyInfo(enemyinfo)
+        setBluffing(false)
+        setMessages(prev => {
+          return [...prev, `Rematched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
+        })
+        setGameProgress('placement')
+        return
+      }
+      if (message.win) {
+        cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1 })
+        setGameProgress('winning screen')
+      }
+      if (message.loss) {
+        cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1 })
+        setGameProgress('losing screen')
+      }
+
       if (message.cookies) {  // set cookies received from server
         console.log(message.cookies)
         Object.entries(message.cookies).forEach(([name, value]) => {
           cookies.set(name, value)
         })
       }
-
       if (message.for === 'player') {
         fromYou({ message, ss })
         return
@@ -95,14 +142,20 @@ function App() {
         fromEnemy({ message, ss })
       }
       if (message.matched) {
-        setEnemyName(message.name)
+        cookies.set('user', { ...cookies.get('user'), state: 'matched' })
+
+        const { enemyinfo } = message
+        setEnemyInfo(enemyinfo)
         setMessages(prev => {
-          return [...prev, `Matched with ${message.name} playing as ${message.character}!`]
+          return [...prev, `Matched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
         })
         setGameProgress('placement')
         return
       }
       if (message.boatsreceived) {
+        cookies.set('user', { ...cookies.get('user'), state: 'ongoing' })
+        if (message.setCharges) setCharges(message.charges)
+        if (message.bluffing === false || message.bluffing) setBluffing(message.bluffing)
         if (message.turn) {
           setMessages(prev => {
             return [...prev, 'Game start! you go first!']
@@ -122,7 +175,6 @@ function App() {
       socket.current.removeEventListener('message', messageListener)
     }
   }, [bluffing, setLastShots, setBluffing, setCharges])
-
   return (
     <div className={styles.app}>
       <button onClick={() => {
@@ -149,7 +201,7 @@ function App() {
           <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
             cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
             boardState={boardState} turn={turn} setTurn={setTurn}
-            // enemyName={enemyName} 
+            enemyInfo={enemyInfo}
             setBoardState={setBoardState} gameProgress={gameProgress} setGameProgress={setGameProgress}
             shootLine={shootLine}
             bluffing={bluffing}
@@ -174,7 +226,6 @@ function App() {
             setFreeShotMiss={setFreeShotMiss}
             enemyFreeShotMiss={enemyFreeShotMiss}
             setEnemyFreeShotMiss={setEnemyFreeShotMiss}
-            setNothing={setNothing}
           />
         </> : cookies.get('user')?.state === 'matching' ?
           <>
@@ -182,7 +233,7 @@ function App() {
               setBoatNames={setBoatNames} cookies={cookies}
               socket={socket} />
           </> :
-          <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket} />
+          <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket} enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
         }
       </div>
     </div>

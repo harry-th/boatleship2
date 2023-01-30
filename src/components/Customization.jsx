@@ -2,9 +2,8 @@ import { useState } from 'react'
 import styles from '../styles/Customization.module.css'
 
 const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies, socket }) => {
-    console.log(cookies.get('user'))
     const [name, setName] = useState(null)
-    const [display, setDisplay] = useState(!character ? 'character' : !cookies.get('user') ? 'done' : 'name')
+    const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user') ? 'done' : 'name')
     const [waiting, setWaiting] = useState(null)
     const setInformation = (e) => {
         e.preventDefault()
@@ -18,7 +17,6 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
         setBoatNames(newBoatNames)
         setDisplay('done')
     }
-
     return (
         <div className={styles.customization}>
             {!character && <div className={styles.characterselect}>
@@ -70,7 +68,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
             <div onClick={() => {
                 setName(null)
                 setDisplay('name')
-            }}> {name || (!cookies.get('user') ? cookies.get('user').name : null)} {!cookies.get('user').name && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}</div>
+            }}> {name || (!cookies.get('user') ? cookies.get('user').name : null)} {cookies.get('user').name && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}</div>
             <div className={styles.boatform}>
                 {(name && display === 'name') && <p className={styles.chooseBoatNames}>choose Boat names?</p>}
                 <form onSubmit={(e) => setInformation(e)}>

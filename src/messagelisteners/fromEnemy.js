@@ -1,5 +1,22 @@
 const fromEnemy = ({ message, ss }) => {
     console.log({ enemy: message })
+    if (message.messagetype === 'disconnect') {
+        ss.setEnemyInfo(prev => {
+            if (prev) prev.status = 'disconnected'
+            return { ...prev }
+        })
+        return
+    }
+    if (message.messagetype === 'reconnect') {
+        ss.setEnemyInfo(prev => {
+            if (prev.status === 'disconnected') delete prev.status
+            return { ...prev }
+        })
+        return
+    }
+
+
+
     if (!message.freeshot) ss.setTurn(true)
     if (message.enemyfreeshotmiss >= 0) ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     ss.setTurnNumber(message.turnNumber)

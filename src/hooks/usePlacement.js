@@ -12,17 +12,20 @@ const usePlacementLogic = ({ socket, orientation, cookies, boardState, setBoardS
     const { current, currentBoat, numberOfBoats } = boatrules
     const [targets, setTargets] = useState([])
     useEffect(() => {
-        let oldPositions = Object.values({ ...boatPlacements }).map((boat) => boat.positions).flat()
-        setBoardState((prev) => {
-            for (const p in prev) {
-                if (oldPositions.includes(Number(p))) prev[p].state = 'mine'
-                else prev[p].state = null
-            }
-            return { ...prev }
-        })
-        setTargets(oldPositions)
-
-    }, [boatPlacements, setBoardState])
+        if (numberOfBoats.num !== current.num && !Array.isArray(boatPlacements)) {
+            let oldPositions = Object.values({ ...boatPlacements }).map((boat) => boat.positions).flat()
+            setBoardState((prev) => {
+                for (const p in prev) {
+                    if (oldPositions.includes(Number(p))) prev[p].state = 'mine'
+                    else prev[p].state = null
+                }
+                return { ...prev }
+            })
+            setTargets(oldPositions)
+        } else if (Object.keys(boatPlacements).length > 0) {
+            setBoatPlacements({})
+        }
+    }, [boatPlacements, setBoardState, numberOfBoats.num, current.num, setBoatPlacements])
     const placement = (index) => {
         let positions = Array(currentBoat.length).fill().map((item, i) => {
             return orientation === 'h' ? index + i : index + i * 10
@@ -56,7 +59,6 @@ const usePlacementLogic = ({ socket, orientation, cookies, boardState, setBoardS
                 if (allPositions.includes(Number(p))) newBoardState[p].state = 'mine'
                 else newBoardState[p].state = null
             }
-            console.log(boatPlacements)
             socket.send(JSON.stringify({
                 character,
                 boatdata: true, id: cookies.get('user').id,

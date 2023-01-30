@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 
 const useLineMan = () => {
     const [lastShots, setLastShots] = useState([])
@@ -109,6 +109,7 @@ const useLineMan = () => {
                 }
                 setEnemyBoardState(newEnemyBoardState)
                 setSelecting(false)
+                if (result.length < 1) return
                 handleClick(result, { shootline: true })
             }
         }
@@ -119,8 +120,8 @@ const useLineMan = () => {
 
                 onMouseLeave={(e) => {
                     setEnemyBoardState(prev => {
-                        if (lastShots[0] && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
-                        if (lastShots[1] && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
+                        if (Number(lastShots[0]) && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
+                        if (Number(lastShots[1]) && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
                         return { ...prev }
                     })
                 }}

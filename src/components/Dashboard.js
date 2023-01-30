@@ -25,8 +25,7 @@ const Dashboard = ({
     , setFreeShotMiss
     , enemyFreeShotMiss
     , setEnemyFreeShotMiss
-    , setColors
-    , setNothing }) => {
+    , setColors }) => {
     return (
         <div className={styles.dashboard}>
             <div className={styles.logcontainer}>

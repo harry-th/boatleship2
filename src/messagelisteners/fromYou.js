@@ -1,5 +1,32 @@
 const fromYou = ({ message, ss }) => {
     console.log({ you: message })
+    if (message.messagetype === 'reconnect') {
+        const { info, data } = message
+        if (!data) {
+            if (message.boardState) ss.setBoardState(message.boardState)
+            ss.setEnemyInfo(info.enemyInfo)
+            ss.setCharacter(info.character)
+            ss.setGameProgress('placement')
+            return
+        }
+        ss.setCharacter(info.character)
+        ss.setBoardState(data.boardState)
+        ss.setEnemyBoardState(data.enemyBoardState)
+        ss.setTurn(data.turn)
+        ss.setTurnNumber(data.turnNumber)
+        ss.setGameProgress('ongoing')
+        ss.setEnemyInfo(info.enemyInfo)
+        if (info.character === 'lineman') {
+            ss.setCharges(data.charges)
+        }
+        if (info.character === 'orangeman') {
+            ss.setBluffing(data.bluffing)
+        }
+        return
+    }
+
+
+
     ss.setTurnNumber(message.turnNumber)
     if (message.freeshotmiss >= 0) ss.setFreeShotMiss(message.freeshotmiss)
     if (message.freeshot) ss.setTurn(true)
@@ -22,8 +49,8 @@ const fromYou = ({ message, ss }) => {
             })
         }
         ss.setEnemyBoardState(prev => {
-            for (const shots in shotresults) {
-                for (const shot of shotresults[shots]) {
+            for (const shots in shotresults) { //{hits:[1,3,4], missed:[6,7]} shots:hit
+                for (const shot of shotresults[shots]) { //shotresults[shots]:[1,3,4]
                     prev[shot].state = shots
                 }
             }
@@ -31,9 +58,9 @@ const fromYou = ({ message, ss }) => {
         })
     }
 
-    let { orangeShotResults } = message
-    ss.setBoardState(prev => {
-        for (const shots in orangeShotResults) {
+    let { orangeShotResults } = message //state:null +oldState:null => state:protected
+    ss.setBoardState(prev => {           //when reset state = oldState
+        for (const shots in orangeShotResults) { //{null:}
             for (const shot of orangeShotResults[shots]) {
                 prev[shot].state = shots
             }

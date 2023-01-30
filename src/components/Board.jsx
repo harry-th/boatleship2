@@ -56,9 +56,9 @@ const Board = ({ player, socket, cookies, boardState, setBoardState,
 
   return (
     <div>
-      <button onClick={
+      {gameProgress === 'placement' && <button onClick={
         boatrules.current.undo
-      }>undo</button>
+      }>undo</button>}
       <div className={styles.board}>
         {[...Array(100)].map((e, i) => <>{element(i)}</>)}
       </div>

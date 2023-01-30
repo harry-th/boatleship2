@@ -1,10 +1,12 @@
 import { useState } from "react"
 
-let useOrangeMan = () => {
+let useOrangeMan = ({ gameProgress, setGameProgress }) => {
     const [bluffing, setBluffing] = useState(sessionStorage.getItem('bluffing') ? JSON.parse(sessionStorage.getItem('bluffing')) : false)
     const [bluffShots, setBluffShots] = useState(sessionStorage.getItem('bluffShots') ? JSON.parse(sessionStorage.getItem('bluffShots')) : [])
 
-
+    // useEffect(() => {
+    //     if (gameProgress !== 'ongoing' || gameProgress !== 'placement' ||) setGameProgress(false)
+    // }, [gameProgress, setGameProgress])
     const OrangeManUI = ({ turn, setTurn, socket, cookies }) => {
         return (
             <div>
