@@ -2,6 +2,7 @@ const fromYou = ({ message, ss }) => {
     console.log({ you: message })
     if (message.messagetype === 'reconnect') {
         const { info, data } = message
+        ss.timer.setStart(message.data.timer, message.time) //bug time
         if (!data) {
             if (message.boardState) ss.setBoardState(message.boardState)
             ss.setEnemyInfo(info.enemyInfo)
@@ -27,10 +28,14 @@ const fromYou = ({ message, ss }) => {
 
 
 
+
     ss.setTurnNumber(message.turnNumber)
     if (message.freeshotmiss >= 0) ss.setFreeShotMiss(message.freeshotmiss)
     if (message.freeshot) ss.setTurn(true)
-    else ss.timer.clear(1)
+    else {
+        ss.timer.clear(1)//time
+        ss.timer.setStart(2, message.time)
+    }
     if (message.bluffing) ss.setBluffing(message.bluffing)
     if (message.charges || message.charges === 0) ss.setCharges(message.charges)
     if (message.shotresults) {

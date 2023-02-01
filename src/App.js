@@ -41,7 +41,7 @@ function App() {
   const [orientation, setOrientation] = useState('h')
 
   const timer = useTimer()
-  let { bluffing, setBluffing, OrangeManUI } = useOrangeMan({ gameProgress, setGameProgress })
+  let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
   // websocket connection
   // TODO: figure out how to deal with dependencies in `onmessage` without creating a new websocket every time
@@ -52,14 +52,17 @@ function App() {
     socket.current = new WebSocket('ws://localhost:8080/ws');
 
     // attempt reconnect after 1s
-    socket.current.onclose = (e) => {
-      console.log('Socket closed:', e.reason)
-      setTimeout(() => connect(), 1000)//attempted connections create more closes, these wait for the server to open it seems
-    }
+    // socket.current.onclose = (e) => {
+    //   console.log('Socket closed:', e.reason)
+    //   setTimeout(() => connect(), 1000)//attempted connections create more closes, these wait for the server to open it seems
+    // }
 
     // close on error
     socket.current.onerror = (e) => {
       console.error('Socket error:', e.code || 'unknown');
+      socket.current.close()
+    }
+    return () => {
       socket.current.close()
     }
   }, [])
@@ -78,7 +81,6 @@ function App() {
 
 
   // socket open
-
 
   useEffect(() => {
     let ss = {
@@ -126,7 +128,7 @@ function App() {
       if (message.win) {
         cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1 })
         if (message.hasDisconnected) {
-          timer.clear(2)
+          timer.clear(2) //time
           setEnemyInfo(prev => {
             prev.disconnected = true
             return prev
@@ -136,7 +138,7 @@ function App() {
       }
       if (message.loss) {
         if (message.hasDisconnected) {
-          timer.clear(1)
+          timer.clear(1) //time
           alert('ran out of time')
         }
         cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1 })
@@ -168,7 +170,7 @@ function App() {
       }
       if (message.boatsreceived) {
         cookies.set('user', { ...cookies.get('user'), state: 'ongoing' })
-        if (message.setCharges) setCharges(message.charges)
+        if (message.charges) setCharges(message.charges)
         if (message.bluffing === false || message.bluffing) setBluffing(message.bluffing)
         if (message.turn) {
           setMessages(prev => {

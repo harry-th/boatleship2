@@ -7,7 +7,7 @@ const Board = ({ socket, cookies, enemyBoardState,
     shootLine, enemyInfo, bluffing, timer }) => {
 
     const handleClick = (index, modifier) => {
-        if (turn) {
+        if (turn && enemyInfo?.status !== 'disconnected') {
             index = !Array.isArray(index) ? [index] : index
             socket.current.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
             setTurn(false)

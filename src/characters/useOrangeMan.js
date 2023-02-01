@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-let useOrangeMan = ({ gameProgress, setGameProgress }) => {
+let useOrangeMan = () => {
     const [bluffing, setBluffing] = useState(sessionStorage.getItem('bluffing') ? JSON.parse(sessionStorage.getItem('bluffing')) : false)
     const [bluffShots, setBluffShots] = useState(sessionStorage.getItem('bluffShots') ? JSON.parse(sessionStorage.getItem('bluffShots')) : [])
 

@@ -1,15 +1,17 @@
 const fromEnemy = ({ message, ss }) => {
     console.log({ enemy: message })
-    if (message.messagetype === 'disconnect') {
+    if (message.messagetype === 'disconnect') { // for time this has to be considered whether or not its your turn during the disconnect
+        ss.timer.clear(2)// time
         ss.setEnemyInfo(prev => {
             if (prev) prev.status = 'disconnected'
             return { ...prev }
         })
-        ss.timer.setStart(2, message.time)
+        ss.timer.setStart(2, message.time)// time
         return
     }
     if (message.messagetype === 'reconnect') {
-        ss.timer.clear(2)
+        ss.timer.clear(2)// time
+        if (message.timer) ss.timer.setStart(message.timer, message.time)// time
         ss.setEnemyInfo(prev => {
             if (prev.status === 'disconnected') delete prev.status
             return { ...prev }
@@ -21,7 +23,8 @@ const fromEnemy = ({ message, ss }) => {
 
     if (!message.freeshot) {
         ss.setTurn(true)
-        ss.timer.setStart(1, message.time)
+        ss.timer.setStart(1, message.time)// time
+        ss.timer.clear(2)// time
     }
     if (message.enemyfreeshotmiss >= 0) ss.setEnemyFreeShotMiss(message.enemyfreeshotmiss)
     ss.setTurnNumber(message.turnNumber)

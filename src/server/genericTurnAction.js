@@ -1,7 +1,9 @@
 const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) => {
-    clearTimeout(userData[groups[id]].turnTimerCode)
-    delete userData[id].turnTimerCode
-    let playerModifier = { for: 'player' }
+
+    if (userData[id]?.timer?.code) clearTimeout(userData[id].timer.code)
+    delete userData[id].timer
+
+    let playerModifier = { for: 'player', time: 20 }
     let enemyModifier = { for: 'opponent', time: 20 }
     let freeshot, extrashot
     if (userData[id].turnNumber % 4 === 0 && userData[id].turnNumber !== 0 && !userData[id].freeshotmiss) {
@@ -19,7 +21,9 @@ const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) =
     if (!freeshot) {
         userData[id].turn = false
         userData[groups[id]].turn = true
-        userData[id].turnTimerCode = setTimeout(() => {
+        userData[groups[id]].timer = {}
+        userData[groups[id]].timer.time ||= Date.now() + 22000
+        userData[groups[id]].timer.code = setTimeout(() => {
             games[userInfo[id].currentGame] = {
                 state: 'finished by turn time', winnerId: id, loserId: groups[id],
                 winner: userInfo[id].name, loser: userInfo[groups[id]].name,
@@ -29,7 +33,9 @@ const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) =
             wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', loss: true, hasDisconnected: true }))
             delete userData[groups[id]]
             delete userData[id]
-        }, 22000)
+            delete groups[id]
+            delete groups[groups[id]]
+        }, userData[groups[id]].timer.remaining || 22000)
     }
     playerModifier = { ...playerModifier, turnNumber: userData[id].turnNumber, ...freeshot, ...extrashot }
     enemyModifier = { ...enemyModifier, turnNumber: userData[groups[id]].turnNumber, enemyTurnNumber: userData[id].turnNumber, ...freeshot, ...extrashot }
