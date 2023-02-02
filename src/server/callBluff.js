@@ -14,6 +14,7 @@ const callBluff = ({ id, userInfo, games, wscodes, groups, userData }) => {
                 shotresults.missed.push(shot)
             }
         }
+        delete userData[groups[id]].bluffArray
         wscodes[id].send(JSON.stringify({ ...playerModifier, callbluff, turnNumber: userData[id].turnNumber, enemyTurnNumber: userData[groups[id]].turnNumber }))
         wscodes[groups[id]].send(JSON.stringify({ ...enemyModifier, callbluff, bluffArray: shotresults, turnNumber: userData[groups[id]].turnNumber, enemyTurnNumber: userData[id].turnNumber }))
     } else {

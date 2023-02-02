@@ -52,10 +52,11 @@ function App() {
     socket.current = new WebSocket('ws://localhost:8080/ws');
 
     // attempt reconnect after 1s
-    // socket.current.onclose = (e) => {
-    //   console.log('Socket closed:', e.reason)
-    //   setTimeout(() => connect(), 1000)//attempted connections create more closes, these wait for the server to open it seems
-    // }
+    socket.current.onclose = (e) => {
+      console.log('closed')
+      // console.log('Socket closed:', e.reason)
+      setTimeout(() => connect(), 1000)//attempted connections create more closes, these wait for the server to open it seems
+    }
 
     // close on error
     socket.current.onerror = (e) => {

@@ -18,7 +18,7 @@ const handleProtection = ({ index, boardState, extrashot }) => {
 const handleBluffing = ({ playerdata, index }) => {
     if (!playerdata.bluffing) playerdata.bluffing = 'bluffing'
     if (playerdata.bluffing === 'bluffing' || playerdata.bluffing === 'ready') playerdata.bluffArray = playerdata.bluffArray ? [...playerdata.bluffArray, ...index] : index
-    else if ((playerdata.bluffing === 'disarmed' || playerdata.bluffing === 'fired') && playerdata.bluffArray.includes(...index)) playerdata.bluffArray.splice(playerdata.bluffArray.findIndex(item => item === index[0]), 1)
+    else if ((playerdata.bluffing === 'fired') && playerdata.bluffArray.includes(...index)) playerdata.bluffArray.splice(playerdata.bluffArray.findIndex(item => item === index[0]), 1)
 }
 const handleOrange = ({ index, playerdata, extrashot, bluffing }) => {
     let orangeShotResults = handleProtection({ index, boardState: playerdata.boardState, extrashot })

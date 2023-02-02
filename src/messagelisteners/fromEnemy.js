@@ -1,7 +1,7 @@
 const fromEnemy = ({ message, ss }) => {
     console.log({ enemy: message })
     if (message.messagetype === 'disconnect') { // for time this has to be considered whether or not its your turn during the disconnect
-        ss.timer.clear(2)// time
+        ss.timer.stop()// time
         ss.setEnemyInfo(prev => {
             if (prev) prev.status = 'disconnected'
             return { ...prev }
@@ -11,6 +11,7 @@ const fromEnemy = ({ message, ss }) => {
     }
     if (message.messagetype === 'reconnect') {
         ss.timer.clear(2)// time
+        if (message.turn) ss.setTurn(message.turn)
         if (message.timer) ss.timer.setStart(message.timer, message.time)// time
         ss.setEnemyInfo(prev => {
             if (prev.status === 'disconnected') delete prev.status

@@ -1,6 +1,6 @@
 const reconnectTimer = ({ id, groups, userInfo, games, wscodes, userData }) => {
-    userData[id].timer.time ||= Date.now() + 22000
-    userData[id].timer.code ||= setTimeout(() => {
+    userData[id].timer.time = Date.now() + userData[id].timer.remaining
+    userData[id].timer.code = setTimeout(() => {
         games[userInfo[id].currentGame] = {
             state: 'finished by turn time', winnerId: id, loserId: groups[id],
             winner: userInfo[id].name, loser: userInfo[groups[id]].name,

@@ -22,7 +22,7 @@ const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) =
         userData[id].turn = false
         userData[groups[id]].turn = true
         userData[groups[id]].timer = {}
-        userData[groups[id]].timer.time ||= Date.now() + 22000
+        userData[groups[id]].timer.time = Date.now() + 22000
         userData[groups[id]].timer.code = setTimeout(() => {
             games[userInfo[id].currentGame] = {
                 state: 'finished by turn time', winnerId: id, loserId: groups[id],
@@ -33,9 +33,7 @@ const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) =
             wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', loss: true, hasDisconnected: true }))
             delete userData[groups[id]]
             delete userData[id]
-            delete groups[id]
-            delete groups[groups[id]]
-        }, userData[groups[id]].timer.remaining || 22000)
+        }, 22000)
     }
     playerModifier = { ...playerModifier, turnNumber: userData[id].turnNumber, ...freeshot, ...extrashot }
     enemyModifier = { ...enemyModifier, turnNumber: userData[groups[id]].turnNumber, enemyTurnNumber: userData[id].turnNumber, ...freeshot, ...extrashot }

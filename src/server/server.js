@@ -1,4 +1,3 @@
-const { r } = require('tar');
 const Cookies = require('universal-cookie');
 const uuid = require('uuid');
 const { WebSocketServer } = require('ws');
@@ -51,7 +50,6 @@ wss.on('connection', (ws, req) => {
     ws.send(JSON.stringify({ games }))
     // create new user
     if (!userInfo[id]) {
-        if (groups[id]) console.log('dingdong')
         // generate a unique user id
         do { id = uuid.v4() } while (groups.hasOwnProperty(id))
 
@@ -64,32 +62,33 @@ wss.on('connection', (ws, req) => {
 
         console.log('new user:', id)
 
-    } else if (groups[id]) {
+    } else if (games[userInfo[id]?.currentGame]?.state === 'ongoing' || games[userInfo[id]?.currentGame]?.state === 'placement') {
         clearTimeout(userInfo[id].disconnectTimerCode)
         let time, playerTimer, enemyTimer
-        userInfo[id].disconnectTimerCode = ''
         delete userInfo[id].disconnectTimerCode
-        if (userData[id].wasTurn) {
-            userData[id].turn = true
-            delete userData[id].wasTurn
-            reconnectTimer({ id, userInfo, games, wscodes, groups, userData })//if your turn
-        } else if (userData[groups[id]].wasTurn) {
-            reconnectTimer({ id: groups[id], userInfo, games, wscodes, groups, userData })
-            userData[groups[id]].turn = true
-            delete userData[groups[id]].wasTurn
-        }
-        if (userData[id].turn) {
-            playerTimer = 1
-            enemyTimer = 2
-            time = Math.floor((userData[id].timer.remaining - 2000) / 1000)
-        } else {
-            playerTimer = 2
-            enemyTimer = 1
-            time = Math.floor((userData[groups[id]].timer.remaining - 2000) / 1000)
+        if (!userInfo[groups[id]].disconnectTimerCode) { //this is just a hacky fix for the react dev double render functionality
+            if (userData[id].wasTurn) {
+                userData[id].turn = true
+                delete userData[id].wasTurn
+                reconnectTimer({ id, userInfo, games, wscodes, groups, userData })//if your turn
+            } else if (userData[groups[id]].wasTurn) {
+                reconnectTimer({ id: groups[id], userInfo, games, wscodes, groups, userData })
+                userData[groups[id]].turn = true
+                delete userData[groups[id]].wasTurn
+            }
+            if (userData[id].turn) {
+                playerTimer = 1
+                enemyTimer = 2
+                time = Math.floor((userData[id].timer.remaining - 2000) / 1000)
+            } else {
+                playerTimer = 2
+                enemyTimer = 1
+                time = Math.floor((userData[groups[id]].timer.remaining - 2000) / 1000)
+            }
         }
         if (games[userInfo[id].currentGame].state === 'ongoing') {
             wscodes[id] = ws
-            wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', time, messagetype: 'reconnect', timer: enemyTimer }))
+            wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', time, messagetype: 'reconnect', timer: enemyTimer, turn: userData[groups[id]].turn }))
             let enemyInfo = userInfo[groups[id]]
             let enemyBoardState = JSON.parse(JSON.stringify(userData[groups[id]].boardState))
             for (const sq in enemyBoardState) {
@@ -108,7 +107,6 @@ wss.on('connection', (ws, req) => {
             let enemyInfo = userInfo[groups[id]]
             let boardState
             if (userData[id]?.boardState) boardState = { boardState: userData[id].boardState }
-            // console.log(userInfo[id])
             ws.send(JSON.stringify({ for: 'player', messagetype: 'reconnect', info: { enemyInfo, ...userInfo[id], }, ...boardState }))
         }
     }
@@ -117,7 +115,6 @@ wss.on('connection', (ws, req) => {
 
     ws.on('close', (code, reason) => {
         if (code === 1001 && !userInfo[id]?.disconnectTimerCode && (games[userInfo[id]?.currentGame]?.state === 'ongoing' || games[userInfo[id]?.currentGame]?.state === 'placement')) {
-            console.log(Boolean(userData[id]?.timer?.code), Boolean(userData[groups[id]]?.timer?.code), 'both codes?')
             if (userData[id]?.timer?.code) {
                 clearTimeout(userData[id].timer.code)
                 userData[id].timer.remaining = userData[id].timer.time - Date.now()
@@ -127,7 +124,7 @@ wss.on('connection', (ws, req) => {
                 userData[groups[id]].timer.remaining = userData[groups[id]].timer.time - Date.now()
                 delete userData[groups[id]].timer.code
             }
-            if (userData[id].turn) userData[id].wasTurn = true
+            if (userData[id].turn || userData[id].wasTurn) userData[id].wasTurn = true
             else userData[groups[id]].wasTurn = true
             userData[id].turn = false
             userData[groups[id]].turn = false
@@ -151,7 +148,7 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (message) => {
         message = JSON.parse(message)
         // console.log(message)
-
+        if (!message.shot) console.log(message)
         const enemydata = userData[groups[id]]
         const playerdata = userData[id]
         const playerinfo = userInfo[id]
@@ -238,7 +235,6 @@ wss.on('connection', (ws, req) => {
                         }
                     }
                     //hit logic
-                    // console.log(index)
                     for (const shot of index) {
                         if (enemydata.targets.includes(shot)) {
                             enemydata.boardState[shot].state = 'hit'
@@ -262,7 +258,7 @@ wss.on('connection', (ws, req) => {
                     //win check
                     if (playerModifier.shipsSunk.length > 0) {
                         if (Object.values(enemydata.boatPlacements).filter(i => i.sunk).length === 4) { //all ships sunk send win type message
-                            clearTimeout(userData[id].timer.code)
+                            clearTimeout(userData[groups[id]].timer.code)
                             games[playerinfo.currentGame] = {
                                 state: 'finished', winnerId: id, loserId: groups[id],
                                 winner: playerinfo.name, loser: enemyinfo.name,
@@ -288,6 +284,7 @@ wss.on('connection', (ws, req) => {
                 let charges, bluffing
                 if (userInfo[id].character === 'lineman') charges = { charges: 4 }
                 if (userInfo[id].character === 'orangeman') bluffing = { bluffing: false }
+                if (userData[id]) delete userData[id]
                 userData[id] = {
                     boatPlacements: message.boatPlacements,
                     targets: message.targets,
@@ -296,7 +293,6 @@ wss.on('connection', (ws, req) => {
                     ...bluffing
                 }
                 if (Object.keys(userData).includes(id) && Object.keys(userData).includes(groups[id])) {
-                    // console.log(playerinfo)
                     games[playerinfo.currentGame].state = 'ongoing'
                     if (Math.random() > 0.5) {
                         userData[groups[id]].turnNumber = 2
@@ -330,7 +326,6 @@ wss.on('connection', (ws, req) => {
             }
         }
         if (message.state === 'matching') {
-            // console.log(!groups.hasOwnProperty(id), 'will reach findGroup')
             if (!groups.hasOwnProperty(id)) {
                 findGroup({ groups, id: id, name: message.name, character: message.character, boatnames: message.boatNames })
             }

@@ -2,7 +2,8 @@ const fromYou = ({ message, ss }) => {
     console.log({ you: message })
     if (message.messagetype === 'reconnect') {
         const { info, data } = message
-        ss.timer.setStart(message.data.timer, message.time) //bug time
+        ss.timer.stop()
+        if (message.data.timer) ss.timer.setStart(message.data.timer, message.time) //bug time
         if (!data) {
             if (message.boardState) ss.setBoardState(message.boardState)
             ss.setEnemyInfo(info.enemyInfo)
