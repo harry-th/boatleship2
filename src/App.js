@@ -36,14 +36,6 @@ function App() {
   const [wins, setWins] = useState(0);
   const [losses, setLosses] = useState(0);
 
-  const userState = {
-    name, setName,
-    boatNames, setBoatNames,
-    character, setCharacter,
-    wins, setWins,
-    losses, setLosses
-  };
-
   // game state
   const [gameProgress, setGameProgress] = useState('preplacement')
   const [boardState, setBoardState] = useState(() => generateBoard(true, true))
@@ -64,7 +56,14 @@ function App() {
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
 
-  
+
+  const userState = {
+    name, setName,
+    boatNames, setBoatNames,
+    character, setCharacter,
+    wins, setWins,
+    losses, setLosses
+  };
 
   useEffect(() => {
     if (gameProgress !== 'placement' && gameProgress !== 'ongoing') {
