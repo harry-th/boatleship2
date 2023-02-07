@@ -1,8 +1,5 @@
 const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) => {
 
-    if (userData[id]?.timer?.code) clearTimeout(userData[id].timer.code)
-    delete userData[id].timer
-
     let playerModifier = { for: 'player', time: 20 }
     let enemyModifier = { for: 'opponent', time: 20 }
     let freeshot, extrashot
@@ -19,6 +16,8 @@ const genericTurnAction = ({ id, userInfo, games, wscodes, groups, userData }) =
         userData[id].turnNumber = Math.floor(userData[id].turnNumber + 1)
     }
     if (!freeshot) {
+        if (userData[id]?.timer?.code) clearTimeout(userData[id].timer.code)
+        delete userData[id].timer
         userData[id].turn = false
         userData[groups[id]].turn = true
         userData[groups[id]].timer = {}

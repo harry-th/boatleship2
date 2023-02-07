@@ -109,6 +109,7 @@ function App() {
         })
       }
       if (message.rematchAccepted) {
+        timer.setStart(1, message.time)
         cookies.set('user', { ...cookies.get('user'), state: 'matched' })
         setFreeShotMiss(0)
         setEnemyFreeShotMiss(0)
@@ -160,7 +161,7 @@ function App() {
       }
       if (message.matched) {
         cookies.set('user', { ...cookies.get('user'), state: 'matched' })
-
+        timer.setStart(1, message.time)
         const { enemyinfo } = message
         setEnemyInfo(enemyinfo)
         setMessages(prev => {
@@ -169,15 +170,21 @@ function App() {
         setGameProgress('placement')
         return
       }
+      if (message.boatssent) {
+        timer.clear(1)
+      }
       if (message.boatsreceived) {
+        timer.clear(1)
         cookies.set('user', { ...cookies.get('user'), state: 'ongoing' })
         if (message.charges) setCharges(message.charges)
         if (message.bluffing === false || message.bluffing) setBluffing(message.bluffing)
         if (message.turn) {
+          timer.setStart(1, message.time)
           setMessages(prev => {
             return [...prev, 'Game start! you go first!']
           })
         } else {
+          timer.setStart(2, message.time)
           setMessages(prev => {
             return [...prev, 'You will go second, freeshot 1 turn earlier...']
           })

@@ -40,35 +40,34 @@ const useLineMan = () => {
             if (selection || selection === 0) {
                 let result = []
                 const checkSquares = (i, result) => {
-                    if (boardState[i].state === 'missed' || boardState[i].state === 'hit' || boardState[i].hover === 'protected') {
+                    if (boardState[i].state === 'missed' || boardState[i].state === 'nope' || boardState[i].state === 'hit' || boardState[i].hover === 'protected') {
                         let lastState = boardState[i].state
                         setBoardState(prev => {
                             prev[i].state = 'nope'
                             return { ...prev }
                         })
 
-                        setTimeout(() => setBoardState(prev => {
+                        if (lastState !== 'nope') setTimeout(() => setBoardState(prev => {
                             prev[i].state = lastState
                             delete prev[i].lastState
                             return { ...prev }
                         }), 400)
-                        return false
-                    } else if (enemyBoardState[i].state === 'selectable' || enemyBoardState[i].state === 'hit' || enemyBoardState[i].hover === 'protected') {
+                        return true
+                    } else if (enemyBoardState[i].state === 'selectable' || enemyBoardState[i].state === 'nope' || enemyBoardState[i].state === 'hit' || enemyBoardState[i].hover === 'protected') {
 
                         let lastState = enemyBoardState[i].state
                         setEnemyBoardState(prev => {
                             prev[i].state = 'nope'
-                            return prev
+                            return { ...prev }
                         })
-                        setTimeout(() => setEnemyBoardState(prev => {
+                        if (lastState !== 'nope') setTimeout(() => setEnemyBoardState(prev => {
                             prev[i].state = lastState
                             delete prev[i].lastState
-                            return prev
+                            return { ...prev }
                         }), 400)
-                        return false
+                        return true
                     } else {
                         result.push(i)
-                        return true
                     }
                 }
                 if ((Math.floor(selection / 10) === Math.floor(index / 10))) {
@@ -81,7 +80,7 @@ const useLineMan = () => {
                         end = index
                     }
                     for (let i = start + 1; i < end; i++) {
-                        if (!checkSquares(i, result)) return
+                        if (checkSquares(i, result)) return
                     }
                 } else if ((((selection % (Math.floor(selection / 10) * 10)) + 1 || selection + 1) === ((index % (Math.floor(index / 10) * 10)) + 1 || index + 1))) {
                     let start, end
@@ -93,7 +92,7 @@ const useLineMan = () => {
                         end = index
                     }
                     for (let i = start + 10; i < end; i += 10) {
-                        if (!checkSquares(i, result)) return
+                        if (checkSquares(i, result)) return
                     }
                 } else {
                     return
