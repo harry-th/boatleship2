@@ -1,59 +1,40 @@
-/**
- * Client WebSocket connection.
- * 
- * Allow custom event listeners to be added to the client WebSocket, allowing
- * us to move state into respective components rather than requiring all
- * state modified by server messages to be at the App level.
-*/
+import { EventEmitter } from 'node:events';
 
 class Client extends EventEmitter {
   constructor(url, protocols) {
-    this.url = url;
-    this.protocols = protocols;
-    this.socket = null;
+    super();
+    this._url = url;
+    this._protocols = protocols;
+    this._socket = null;
     this.reconnect();
   }
 
-  // send a message to the server
   send(type, data) {
-    this.socket.send(JSON.stringify({ type, data }));
+    this._socket.send(JSON.stringify({ type, data }));
   }
 
-  // close the underlying websocket
   close() {
-    this.socket.close();
+    this._socket.close();
   }
 
-  // create a new websocket connection
   reconnect() {
-    this.socket = new WebSocket(this.url, this.protocols);
-
-    // generic open
-    this.socket.addEventListener('open', (e) => {
-      console.log('Client socket open');
-      this.emit('open', null);
+    this._socket = new WebSocket(this._url, this._protocols);
+    
+    // on close, reconnect socket
+    this._socket.addEventListener('close', (e) => {
+      this.reconnect();
+    });
+    
+    // on error, close socket
+    this._socket.addEventListener('error', (e) => {
+      this._socket.close();
     });
 
-    // message dispatch handler
-    this.socket.addEventListener('message', (e) => {
+    // dispatch messages by type
+    this._socket.addEventListener('message', (e) => {
       const { type, data } = JSON.parse(e.data);
-      this.emit('message', { type, data });  // dispatch to message handlers
       this.emit(type, data);
-    });
-
-    // attempt reconnect after 1s
-    this.socket.addEventListener('close', (e) => {
-      console.log('Client socket closed: ', e.code);
-      this.emit('close', e.code);
-      this.reconnect();  // called when failed connection closes on error
-    });
-
-    // on error, close
-    this.socket.addEventListener('error', (e) => {
-      console.log('Client socket error. Closing...');
-      this.emit('error', null);
-      this.socket.close();
-    });
+    })
   }
 }
 
