@@ -5,13 +5,29 @@ import { WebSocket } from 'ws';
 
 const testCases = [];  // test cases/results
 let current = null;  // current test
+let start = false;  // tests started flag
 
 
 function testCase(description, callback) {
-  current = { description, results: [] };
-  callback();
-  testCases.push(current);
-  current = null;
+  if (start) {
+    current = { description, results: [] };
+    callback();
+    testCases.push(current);
+    current = null;
+  }
+  else {
+    throw new Error('startTests() must be called before calling testCase().');
+  }
+}
+
+
+function startTests() {
+  if (!start) {
+    console.log('BEGIN TEST =========================================');
+    start = true;
+  } else {
+    throw new Error('startTests() already called/tests already started.');
+  }
 }
 
 
@@ -60,7 +76,7 @@ class TestClient extends EventEmitter {
       const { type, data } = JSON.parse(e.data);
 
       // test message
-      const test = this.tests.pop();
+      const test = this.tests.shift();
       if (test) {
         let result;
         if (test.type !== type) {
@@ -74,17 +90,19 @@ class TestClient extends EventEmitter {
         }
         testCases[test.caseId].results[test.resultId] = result;
 
-        // print test results once complete
         if (testCases.every((c) => c.results.every(r => r))) {
           testCases.forEach((c, i) => {
             console.log(`TEST CASE ${i}: ${c.description}`);
             c.results.forEach((r, j) => {
               const digits = Math.floor(Math.log10(c.results.length)) + 1;
-              
+      
               console.log(String(j).padEnd(digits), r);
             });
           });
-          console.log('END TEST ===========================================');
+
+          setTimeout(() => {
+            console.log('END TEST ===========================================');
+          }, 100);
         }
       }
       else {
@@ -94,10 +112,11 @@ class TestClient extends EventEmitter {
   }
 }
 
-console.log('BEGIN TEST =========================================');
+
+startTests();
 
 const client1 = new TestClient('ws://localhost:8080/ws');
-const client2 = new TestClient('ws://localhost:8080/ws');
+// const client2 = new TestClient('ws://localhost:8080/ws');
 
 const cookies = new Cookies();
 
@@ -105,13 +124,14 @@ const cookies = new Cookies();
 //   console.log(data);
 // });
 
+
 testCase('shot miss', () => {
   client1.expect('cookies', (data) => {
     return data.user !== undefined;
   })
 
-  client1.expect('cookies', (data) => {
-    return data.user !== undefined;
+  client1.expect('userInfo', (data) => {
+    return data.user === undefined;
   })
 });
 
