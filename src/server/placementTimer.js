@@ -23,8 +23,8 @@ const placementTimer = ({ userData, userInfo, groups, games, id, wscodes }) => {
             winner: userInfo[id].name, loser: userInfo[groups[id]].name,
             winnerCharacter: userInfo[id].character, loserCharacter: userInfo[groups[id]].character
         }
-        if (userData[id].timer.code) //do something if the enemies timer is still going therefore both disconnected
-            wscodes[id].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true, placementTimer: 'wow' }))
+        // if (userData[groups[id]].timer.code) //do something if the enemies timer is still going therefore both disconnected
+        wscodes[id].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true, placementTimer: 'wow' }))
         wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', loss: true, hasDisconnected: true, placementTimer: 'wow' }))
         delete userData[groups[id]]
         delete userData[id]

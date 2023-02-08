@@ -14,12 +14,13 @@ import useLineMan from './characters/useLineMan';
 import fromYou from './messagelisteners/fromYou';
 import fromEnemy from './messagelisteners/fromEnemy';
 import useTimer from './hooks/timer';
+import postGame from './messagelisteners/postGame';
+import preGame from './messagelisteners/preGame';
 
 
 const cookies = new Cookies()
 
 function App() {
-
 
   const socket = useRef(null);
   const [gameProgress, setGameProgress] = useState('preplacement')
@@ -31,15 +32,11 @@ function App() {
   const [enemyFreeShotMiss, setEnemyFreeShotMiss] = useState(0)
   const [turnNumber, setTurnNumber] = useState(0)
   const [enemyTurnNumber, setEnemyTurnNumber] = useState(turnNumber)
-
   const [enemyBoardState, setEnemyBoardState] = useState(() => generateBoard(true, true))
   const [enemyInfo, setEnemyInfo] = useState({})
-
   const [character, setCharacter] = useState(false)
-
   const [turn, setTurn] = useState(true)
   const [orientation, setOrientation] = useState('h')
-
   const timer = useTimer()
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
@@ -50,7 +47,6 @@ function App() {
   // socket connect/reconnect
   useEffect(function connect() {
     socket.current = new WebSocket('ws://localhost:8080/ws');
-
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
       console.log('closed')
@@ -87,68 +83,13 @@ function App() {
     let ss = {
       setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setCharacter,
       setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber, setCharges, setEnemyInfo,
-      timer
+      timer, setChat
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
       console.log(message)
-
-      if (message.chat) {
-        setChat(prev => [...prev, message.chat])
-      }
-      if (message.hasLeft) {
-        setEnemyInfo(prev => {
-          prev.lookingForRematch = 'left'
-          return { ...prev }
-        })
-      }
-      if (message.lookingForRematch) {
-        setEnemyInfo(prev => {
-          prev.lookingForRematch = 'looking'
-          return { ...prev }
-        })
-      }
-      if (message.rematchAccepted) {
-        timer.setStart(1, message.time)
-        cookies.set('user', { ...cookies.get('user'), state: 'matched' })
-        setFreeShotMiss(0)
-        setEnemyFreeShotMiss(0)
-        setTurnNumber(0)
-        setEnemyTurnNumber(0)
-        setBoardState(() => generateBoard(true, true))
-        setMessages([])
-        setEnemyBoardState(() => generateBoard(true, true))
-        const { enemyinfo } = message
-        setEnemyInfo(enemyinfo)
-        setBluffing(false)
-        setMessages(prev => {
-          return [...prev, `Rematched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
-        })
-        setGameProgress('placement')
-        return
-      }
-      if (message.win) {
-        cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1 })
-        if (message.hasDisconnected) {
-          timer.clear(2) //time
-          setEnemyInfo(prev => {
-            prev.disconnected = true
-            return prev
-          })
-        }
-        setGameProgress('winning screen')
-      }
-      if (message.loss) {
-        if (message.hasDisconnected) {
-          timer.clear(1) //time
-          alert('ran out of time')
-        }
-        cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1 })
-        setGameProgress('losing screen')
-      }
-
+      postGame({ message, cookies, ss })
       if (message.cookies) {  // set cookies received from server
-        console.log(message.cookies)
         Object.entries(message.cookies).forEach(([name, value]) => {
           cookies.set(name, value)
         })
@@ -158,41 +99,9 @@ function App() {
         return
       } else if (message.for === 'opponent') {
         fromEnemy({ message, ss })
-      }
-      if (message.matched) {
-        cookies.set('user', { ...cookies.get('user'), state: 'matched' })
-        timer.setStart(1, message.time)
-        const { enemyinfo } = message
-        setEnemyInfo(enemyinfo)
-        setMessages(prev => {
-          return [...prev, `Matched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
-        })
-        setGameProgress('placement')
         return
       }
-      if (message.boatssent) {
-        timer.clear(1)
-      }
-      if (message.boatsreceived) {
-        timer.clear(1)
-        cookies.set('user', { ...cookies.get('user'), state: 'ongoing' })
-        if (message.charges) setCharges(message.charges)
-        if (message.bluffing === false || message.bluffing) setBluffing(message.bluffing)
-        if (message.turn) {
-          timer.setStart(1, message.time)
-          setMessages(prev => {
-            return [...prev, 'Game start! you go first!']
-          })
-        } else {
-          timer.setStart(2, message.time)
-          setMessages(prev => {
-            return [...prev, 'You will go second, freeshot 1 turn earlier...']
-          })
-        }
-        setGameProgress('ongoing')
-        setTurn(message.turn)
-        console.log('got the boats')
-      }
+      preGame({ message, cookies, ss })
     }
     socket.current.addEventListener('message', messageListener)
     return () => {
