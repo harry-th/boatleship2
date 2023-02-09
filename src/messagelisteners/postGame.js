@@ -1,6 +1,6 @@
 const postGame = ({ message, cookies, ss }) => {
     if (message.chat) {
-        ss.setChat(prev => [...prev, message.chat])
+        ss.setChat(prev => [message.chat, ...prev])
     }
     if (message.hasLeft) {
         ss.setEnemyInfo(prev => {
@@ -18,6 +18,7 @@ const postGame = ({ message, cookies, ss }) => {
         ss.timer.setStart(1, message.time)
         cookies.set('user', { ...cookies.get('user'), state: 'matched' })
         const { enemyinfo } = message
+        ss.setEnemyInfo(enemyinfo)
         ss.setMessages(prev => {
             return [...prev, `Rematched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
         })
@@ -25,7 +26,7 @@ const postGame = ({ message, cookies, ss }) => {
         return
     }
     if (message.win) {
-        cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1 })
+        cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1, state: 'aftergame' })
         ss.timer.clear(2) //time
         if (message.hasDisconnected) {
             ss.setEnemyInfo(prev => {
@@ -33,15 +34,21 @@ const postGame = ({ message, cookies, ss }) => {
                 return prev
             })
         }
-        ss.setGameProgress('winning screen')
+        setTimeout(() => {
+            ss.setGameProgress('winning screen')
+        }, 1500)
+        return
     }
     if (message.loss) {
         ss.timer.clear(1) //time
         if (message.hasDisconnected) {
             alert('ran out of time')
         }
-        cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1 })
-        ss.setGameProgress('losing screen')
+        cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1, state: 'aftergame' })
+        setTimeout(() => {
+            ss.setGameProgress('losing screen')
+        }, 1500)
+        return
     }
 }
 

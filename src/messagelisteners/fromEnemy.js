@@ -47,14 +47,31 @@ const fromEnemy = ({ message, ss }) => {
             else if (shotresults.hit.length > 0) return [...prev, `They fired at ${shotresults.hit} and it was a hit!`]
             else if (shotresults.missed.length > 0) return [...prev, `They fired at ${shotresults.missed} but it missed!`]
         })
-        ss.setBoardState(prev => {
+        if ([...shotresults.hit, ...shotresults.missed].length > 1) {
             for (const shots in shotresults) {
-                for (const shot of shotresults[shots]) {
-                    prev[shot].state = shots
+                let i = 0
+                while (i < shotresults[shots].length) {
+                    const delayShots = (i) => {
+                        setTimeout(() => {
+                            ss.setBoardState(prev => {
+                                prev[shotresults[shots][i]].state = shots
+                                return { ...prev }
+                            })
+                        }, i * 200)
+                    }
+                    delayShots(i)
+                    i++
                 }
             }
-            return { ...prev }
-        })
+        } else
+            ss.setBoardState(prev => {
+                for (const shots in shotresults) {
+                    for (const shot of shotresults[shots]) {
+                        prev[shot].state = shots
+                    }
+                }
+                return { ...prev }
+            })
 
         let { enemyOrangeResults } = message
         ss.setEnemyBoardState(prev => {

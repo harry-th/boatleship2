@@ -16,6 +16,7 @@ import fromEnemy from './messagelisteners/fromEnemy';
 import useTimer from './hooks/timer';
 import postGame from './messagelisteners/postGame';
 import preGame from './messagelisteners/preGame';
+import Games from './components/Games';
 
 
 const cookies = new Cookies()
@@ -37,6 +38,7 @@ function App() {
   const [character, setCharacter] = useState(false)
   const [turn, setTurn] = useState(true)
   const [orientation, setOrientation] = useState('h')
+  const [games, setGames] = useState([])
   const timer = useTimer()
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
@@ -55,10 +57,10 @@ function App() {
     }
 
     // close on error
-    socket.current.onerror = (e) => {
-      console.error('Socket error:', e.code || 'unknown');
-      socket.current.close()
-    }
+    // socket.current.onerror = (e) => {
+    //   console.error('Socket error:', e.code || 'unknown');
+    //   socket.current.close()
+    // }
     return () => {
       socket.current.close()
     }
@@ -87,6 +89,7 @@ function App() {
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
+      if (message.games) setGames(message.games)
       console.log(message)
       postGame({ message, cookies, ss })
       if (message.cookies) {  // set cookies received from server
@@ -108,6 +111,9 @@ function App() {
       socket.current.removeEventListener('message', messageListener)
     }
   }, [bluffing, setLastShots, setBluffing, setCharges, timer])
+
+
+
   return (
     <div className={styles.app}>
       <button onClick={() => {
@@ -118,57 +124,75 @@ function App() {
       <div className={styles.title}>WELCOME TO BATTLESHIP</div>
 
       <div className={styles.boardcontainer}>
-        {(gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
-          {gameProgress === 'placement' && <button
-            onClick={() => { orientation === 'v' ? setOrientation('h') : setOrientation('v') }}>
-            change boat orientation
-          </button>
-          }
 
-          <Board player board={boardState} character={character} socket={socket.current}
-            boatNames={boatNames} setBoatNames={setBoatNames}
-            cookies={cookies} setCookie={cookies.set}
-            boardState={boardState} setBoardState={setBoardState}
-            orientation={orientation} gameProgress={gameProgress} setGameProgress={setGameProgress}
-            timer={timer}
-          />
-          <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
-            cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
-            boardState={boardState} turn={turn} setTurn={setTurn}
-            enemyInfo={enemyInfo}
-            setBoardState={setBoardState} gameProgress={gameProgress} setGameProgress={setGameProgress}
-            shootLine={shootLine}
-            bluffing={bluffing} timer={timer}
-          />
-          <Dashboard
-            messages={messages}
-            gameProgress={gameProgress}
-            turnNumber={turnNumber}
-            enemyTurnNumber={enemyTurnNumber}
-            character={character}
-            OrangeManUI={OrangeManUI}
-            turn={turn}
-            setTurn={setTurn}
-            socket={socket}
-            enemyBoardState={enemyBoardState}
-            cookies={cookies}
-            setEnemyBoardState={setEnemyBoardState}
-            LineManUI={LineManUI}
-            setTurnNumber={setTurnNumber}
-            boardState={boardState}
-            freeShotMiss={freeShotMiss}
-            setFreeShotMiss={setFreeShotMiss}
-            enemyFreeShotMiss={enemyFreeShotMiss}
-            setEnemyFreeShotMiss={setEnemyFreeShotMiss}
-            enemyInfo={enemyInfo}
-          />
-        </> : cookies.get('user')?.state === 'matching' ?
-          <>
-            <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
-              setBoatNames={setBoatNames} cookies={cookies}
-              socket={socket} />
-          </> :
-          <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket} enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
+        {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
+          <div>
+            hello
+            <button onClick={() => {
+              cookies.set('user', { ...cookies.get('user'), state: 'matching' })
+              console.log(cookies.get('user'))
+              setMessages([...messages])
+            }}>play</button>
+            <Games games={games} />
+          </div>
+          : (gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
+            {gameProgress === 'placement' && <button
+              onClick={() => { orientation === 'v' ? setOrientation('h') : setOrientation('v') }}>
+              change boat orientation
+            </button>
+            }
+
+            <Board player board={boardState} character={character} socket={socket.current}
+              boatNames={boatNames} setBoatNames={setBoatNames}
+              cookies={cookies} setCookie={cookies.set}
+              boardState={boardState} setBoardState={setBoardState}
+              orientation={orientation} gameProgress={gameProgress} setGameProgress={setGameProgress}
+              timer={timer}
+            />
+            <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
+              cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
+              boardState={boardState} turn={turn} setTurn={setTurn}
+              enemyInfo={enemyInfo}
+              setBoardState={setBoardState} gameProgress={gameProgress} setGameProgress={setGameProgress}
+              shootLine={shootLine}
+              bluffing={bluffing} timer={timer}
+            />
+            <Dashboard
+              messages={messages}
+              gameProgress={gameProgress}
+              turnNumber={turnNumber}
+              enemyTurnNumber={enemyTurnNumber}
+              character={character}
+              OrangeManUI={OrangeManUI}
+              turn={turn}
+              setTurn={setTurn}
+              socket={socket}
+              enemyBoardState={enemyBoardState}
+              cookies={cookies}
+              setEnemyBoardState={setEnemyBoardState}
+              LineManUI={LineManUI}
+              setTurnNumber={setTurnNumber}
+              boardState={boardState}
+              freeShotMiss={freeShotMiss}
+              setFreeShotMiss={setFreeShotMiss}
+              enemyFreeShotMiss={enemyFreeShotMiss}
+              setEnemyFreeShotMiss={setEnemyFreeShotMiss}
+              enemyInfo={enemyInfo}
+            />
+          </> : cookies.get('user')?.state === 'matching' ?
+            <>
+              <button onClick={() => {
+                cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+                console.log(cookies.get('user'))
+                setMessages([...messages])
+              }}>games</button>
+              <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
+                setBoatNames={setBoatNames} cookies={cookies}
+                socket={socket} />
+            </> : cookies.get('user')?.state === 'aftergame' ?
+              <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
+                enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
+              : <div></div>
         }
       </div>
     </div>
