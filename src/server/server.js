@@ -20,7 +20,7 @@ const userInfo = {}//{id:{userinformation}}
 const findGroup = ({ groups, id, name, character, boatnames }) => {
     userInfo[id] = { ...userInfo[id], name, character, boatnames }
     let matchID = Object.entries(groups).find((group) => group[1] === null)
-    if (matchID) {
+    if (matchID && ((character === 'default' && userInfo[matchID[0]].character === 'default') || (character !== 'default' && userInfo[matchID[0]].character !== 'default'))) {
         groups[matchID[0]] = id
         groups[id] = matchID[0]
         let playerinfo = userInfo[id]
@@ -373,7 +373,7 @@ wss.on('connection', (ws, req) => {
             }
         }
         if (message.state === 'matching') {
-            if (!groups.hasOwnProperty(id)) {
+            if (!groups.hasOwnProperty(id) || message.character !== userInfo[id].character) {
                 findGroup({ groups, id: id, name: message.name, character: message.character, boatnames: message.boatNames })
             }
         }

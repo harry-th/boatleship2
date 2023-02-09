@@ -54,8 +54,8 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         <li>if you hit both the rear and head of a boat you sink the boat immediately.</li>
                     </ul>
                 </div>
-                {/* <div onClick={() => {
-                    setCharacter('none')
+                <div onClick={() => {
+                    setCharacter('default')
                     if (!cookies.get('user')) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>default mode</h5>
@@ -63,7 +63,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         <li>can build around the edges of the board</li>
                         <li>if you hit both the rear and head of a boat you sink the boat immediately.</li>
                     </ul>
-                </div> */}
+                </div>
             </div>}
             <div onClick={() => {
                 setName(null)
