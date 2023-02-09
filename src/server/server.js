@@ -10,7 +10,8 @@ import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generato
 // import reconnectTimer from './reconnectTimer';
 // import retaliation from './retaliation';
 
-
+// TODO: make server secure
+// https://stackoverflow.com/questions/31338927/how-to-create-securetls-ssl-websocket-server
 const wss = new WebSocketServer({ port: 8080, ssl: true });
 
 const groups = {} // {id:opponentid, opponentid:id}
@@ -18,48 +19,6 @@ const games = {} //gameId: {state: 'ongoing', players:[id1, id2], player1:name, 
 const wscodes = {} //{id: ws}
 const userData = {} //{id:{gameinformation}}
 const userInfo = {}//{id:{userinformation}}
-
-
-// class UserInfo {
-//   constructor() {
-//     this.name = uniqueNamesGenerator({
-//       dictionaries: [adjectives, animals],
-//       length: 2
-//     });
-//     this.boatNames = ['destroyer', 'cruiser', 'battleship', 'carrier'];
-//     this.character = null;
-//   }
-// }
-
-// class UserData {
-//   constructor() {
-//     this.gameProgress = 'preplacement';
-//     this.boatPlacements = null;
-//     this.targets = null;
-//     this.boardState = null;
-//     this.turn = false;
-//     this.turnNumber = 0;
-//     this.bluffing = false;
-//     this.bluffArray = null;
-//     this.twoShots = null;
-//     this.extraShot = false;
-//     this.freeShotMiss = false;
-//   }
-
-//   // add handlers
-// }
-
-// class OrangeMan extends UserData {
-
-// }
-
-// class LineMan extends UserData {
-
-// }
-
-// class CornerMan extends UserData {
-
-// }
 
 
 // const findGroup = ({ groups, id, name, character, boatnames }) => {
@@ -81,68 +40,68 @@ const userInfo = {}//{id:{userinformation}}
 //   }
 // }
 
-// Server startup
+
+// server startup
 wss.on('listening', () => {
   const { address, port } = wss.address()
   console.log(`server listening on ${address}:${port}`)
 });
 
-// New websocket connection
+// new websocket connection
 wss.on('connection', (ws, req) => {
-  // update socket send function to match  - send messages by type
+  const cookies = new Cookies(req.headers.cookie);
+  let id = cookies?.get('sessionID');
+
+  // WebSocket.send() helper
   ws.sendData = ws.send;
-  ws.send = (type, data) => {
-    ws.sendData(JSON.stringify({ type, data }));
+  ws.send = (data) => {
+    ws.sendData(JSON.stringify(data));
   };
 
-  // validate user session
-  const cookies = new Cookies(req.headers.cookie);
-  let id = cookies?.get('user')?.id;
+  // validate user session cookies
+  if (!userInfo[id]) {
 
-  ws.on('open', () => {
-    // create new user session
-    if (!userInfo[id]) {
-      console.log('new user:', id);
+    // generate a unique user id
+    do { id = v4(); } while (groups.hasOwnProperty(id));
 
-      // generate a unique user id
-      do { id = v4(); } while (groups.hasOwnProperty(id));
+    // PLACEHOLDER
+    userInfo[id] = {
+      name: uniqueNamesGenerator({
+        dictionaries: [adjectives, animals],
+        separator: ' ',
+        length: 2,
+      }),
+    };
+    ws.send({ sessionID: id });
+    
+    console.log('new user:', id);
+  } else {
+    console.log('existing user:', id);
+  }
 
-      userInfo[id] = {
-        name: uniqueNamesGenerator({
-          dictionaries: [adjectives, animals],
-          separator: ' ',
-          length: 2,
-        }),
-        boatNames: ['destroyer', 'cruiser', 'battleship', 'carrier'],
-        character: null,
-        wins: 0,
-        losses: 0
-      };
-      ws.send('cookies', { user: id });
-    } else {
-      console.log('existing user:', id);
-    }
-
-    // send user info
-    ws.send('userInfo', userInfo[id]);
-  });
+  // send user info
+  ws.send(userInfo[id]);
 
   // close on error
-  ws.on('error', (err) => {
+  ws.addListener('error', (error) => {
     ws.close();
   });
 
   // socket connection closed
-  ws.on('close', (code, reason) => {
-    console.log(`closed (${code}): ${id}`);
+  ws.addListener('close', (code, reason) => {
+    console.log(`closed (${code}): ${reason}`);
 
     // TODO: handle disconnect
   });
 
   // message dispatch
-  ws.on('message', (message) => {
-    const { type, data } = JSON.parse(message);
-    ws.emit(type, data);
+  ws.addEventListener('message', (e) => {
+    const message = JSON.parse(e.data);
+
+    console.log(message);
+
+    // TODO: message dispatch set state
+
   });
 
 
