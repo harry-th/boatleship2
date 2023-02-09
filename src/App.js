@@ -47,13 +47,14 @@ let socket;
 
 // custom hook that asynchronizes state. Uses the top-level websocket
 // see: https://beta.reactjs.org/learn/queueing-a-series-of-state-updates
-const useListener = (type, initialState) => {
+// warning: unable to handle an updater function
+const useClient = (type, initialState) => {
   const [state, setState] = useState(initialState);
 
   // send data
   const sendState = (value) => {
     setState(value);
-    socket.send(JSON.stringify({ value }));
+    socket.send(JSON.stringify({ [type]: value }));
   }
 
   // receive data
@@ -70,36 +71,48 @@ const useListener = (type, initialState) => {
   return [state, sendState];
 };
 
+
+// agnostic initial game state
+const initState = {
+  name: '',
+  boatNames: ['destroyer', 'cruiser', 'battleship', 'carrier'],
+  wins: 0,
+  losses: 0
+};
+
+
 function App() {
   // declare user info (shared across components)
-  const [name, setName] = useListener('name', null);
+  const [name, setName] = useClient('name', initState.name);
+  const [boatNames, setBoatNames] = useClient('boatNames', initState.boatNames);
+  const [wins, setWins] = useClient('wins', initState.wins);
+  const [losses, setLosses] = useClient('wins', initState.losses);
 
-
-  // useEffect(() => {
-  //   const messageListener = (e) => {
-  //     const data = JSON.parse(e.data);
-
-
-
-  //   };
-  //   socket.addEventListener('message', messageListener);
-  //   return () => {
-  //     socket.removeEventListener('message', messageListener);
-  //   };
-  // }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const elems = e.target.elements;
 
-    console.log(e.target[0].value);
-    setName(e.target[0].value);
+    if (elems.name.value) {
+      setName(elems.name.value);
+    }
+    setBoatNames(Array.from(elems.boatName).map((elem) => elem.value));
   }
 
   return (
     <div>
-      <div>{name}</div>
+      <div>{name} --- {wins}/{losses}</div>
       <form onSubmit={handleSubmit}>
-        <input type="text" id="name" />
+        <label htmlFor='name'>Name</label>
+        <input type='text' name='name' defaultValue={name} />
+        {boatNames.map((boatName, i) => {
+          return (
+            <div key={i}>
+              <label htmlFor='boatName'>{boatNames[i]}</label>
+              <input type='text' name='boatName' defaultValue={boatName} />
+            </div>
+          );
+        })}
         <input type="submit" value="Submit" />
       </form>
     </div>
