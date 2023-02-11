@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+// import { uniqueNamesGenerator, adjectives, animals } from "unique-names-generator";
 
-import './App.css';
-import cookies from './helpers/cookies.js';
-// import Board from './components/Board'
-// import EnemyBoard from './components/EnemyBoard'
-// import generateBoard from './helpers/generateBoard';
-// import Customization from './components/Customization.js';
-// import Endofgame from './components/Endofgame';
-// import styles from './styles/App.module.css'
-// import Dashboard from './components/Dashboard';
-// import useOrangeMan from './characters/useOrangeMan';
-// import useLineMan from './characters/useLineMan';
-// import fromYou from './messagelisteners/fromYou';
-// import fromEnemy from './messagelisteners/fromEnemy';
-// import useTimer from './hooks/timer';
+import "./App.css";
+import cookies from "./helpers/cookies.js";
+import styles from "./styles/App.module.css"
+
+import Customization from "./components/Customization.jsx";
+import OrientationButton from "./components/OrientationButton.jsx";
+// import Board from "./components/Board"
+// import EnemyBoard from "./components/EnemyBoard"
+// import generateBoard from "./helpers/generateBoard";
+// import Customization from "./components/Customization.js";
+// import Endofgame from "./components/Endofgame";
+// import Dashboard from "./components/Dashboard";
+// import useOrangeMan from "./characters/useOrangeMan";
+// import useLineMan from "./characters/useLineMan";
+// import fromYou from "./messagelisteners/fromYou";
+// import fromEnemy from "./messagelisteners/fromEnemy";
+// import useTimer from "./hooks/timer";
 
 
 // cookies.remove('sessionID')
@@ -45,19 +49,19 @@ let socket;
   });
 })();
 
-// custom hook that asynchronizes state. Uses the top-level websocket
-// see: https://beta.reactjs.org/learn/queueing-a-series-of-state-updates
-// warning: unable to handle an updater function
-const useClient = (type, initialState) => {
+// custom hook wrapping useState with socket sending on update.
+// NOTE: Updater functions cannot be used. 
+const useSyncState = (type, initialState) => {
   const [state, setState] = useState(initialState);
 
-  // send data
   const sendState = (value) => {
+    if (typeof value === 'function') {
+      throw new Error('Cannot use updater function in useClient action.');
+    }
     setState(value);
     socket.send(JSON.stringify({ [type]: value }));
   }
 
-  // receive data
   useEffect(() => {
     const listener = (e) => {
       setState(e.detail);
@@ -68,53 +72,92 @@ const useClient = (type, initialState) => {
     }
   }, [type]);
 
-  return [state, sendState];
+  // create state/setState variables
+  const set = 'set' + type.charAt(0).toUpperCase() + type.slice(1);
+  return {
+    [type]: state,
+    [set]: sendState
+  };
 };
 
 
-// agnostic initial game state
-const initState = {
-  name: '',
+// initial player info state
+const playerInit = {
+  name: 'noName',
   boatNames: ['destroyer', 'cruiser', 'battleship', 'carrier'],
   wins: 0,
   losses: 0
 };
 
+// TODO: make logic that overlaps
+//     client can use to render
+//     server can use to verify
+//     create character modules which include hooks and server functions
+//     closely matching, using helper functions to render/verify somehow 
+
+setInterval(() => {
+  console.log(typeof socket);
+}, 1000);
+
 
 function App() {
-  // declare user info (shared across components)
-  const [name, setName] = useClient('name', initState.name);
-  const [boatNames, setBoatNames] = useClient('boatNames', initState.boatNames);
-  const [wins, setWins] = useClient('wins', initState.wins);
-  const [losses, setLosses] = useClient('wins', initState.losses);
+  // const [orientation, setOrientation] = useState('orientation', 'v');
+
+  const {gameProgress, setGameProgress} = useSyncState('gameProgress', 'preplacement');
 
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const elems = e.target.elements;
+  const {character, setCharacter} = useSyncState('character', null);
 
-    if (elems.name.value) {
-      setName(elems.name.value);
+
+  const player = {
+    ...useSyncState('name', playerInit.name),
+    ...useSyncState('boatNames', playerInit.boatNames),
+    ...useSyncState('wins', playerInit.wins),
+    ...useSyncState('losses', playerInit.losses)
+  };
+
+
+  const removeCookie = () => {
+    cookies.remove('sessionID');
+    setGameProgress('preplacement');
+  };
+
+
+  const page = () => {
+    if (gameProgress === 'preplacement') {
+      console.log('thing');
+      return (
+        <Customization
+          useSyncState={useSyncState}
+          gameProgress={gameProgress}
+          setGameProgress={setGameProgress}
+          {...player}
+        />
+      );
     }
-    setBoatNames(Array.from(elems.boatName).map((elem) => elem.value));
+    else if (gameProgress === 'placement' || gameProgress === 'ongoing')
+    {
+      return (
+        <>
+          {gameProgress === 'placement' && <OrientationButton />}
+
+        </>
+
+      );
+    }
+
+
   }
 
+
   return (
-    <div>
-      <div>{name} --- {wins}/{losses}</div>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor='name'>Name</label>
-        <input type='text' name='name' defaultValue={name} />
-        {boatNames.map((boatName, i) => {
-          return (
-            <div key={i}>
-              <label htmlFor='boatName'>{boatNames[i]}</label>
-              <input type='text' name='boatName' defaultValue={boatName} />
-            </div>
-          );
-        })}
-        <input type="submit" value="Submit" />
-      </form>
+    <div className={styles.app}>
+      <button onClick={removeCookie}>remove cookie</button>
+      <div className={styles.title}>WELCOME TO BATTLESHIP</div>
+
+      <div className={styles.boardcontainer}>
+        {page()}
+      </div>
     </div>
   );
 }

@@ -83,13 +83,13 @@ wss.on('connection', (ws, req) => {
   ws.send(userInfo[id]);
 
   // close on error
-  ws.addListener('error', (error) => {
+  ws.addEventListener('error', (e) => {
     ws.close();
   });
 
   // socket connection closed
-  ws.addListener('close', (code, reason) => {
-    console.log(`closed (${code}): ${reason}`);
+  ws.addEventListener('close', (e) => {
+    console.log(`closed (${e.code}): ${e.reason}`);
 
     // TODO: handle disconnect
   });
@@ -100,11 +100,18 @@ wss.on('connection', (ws, req) => {
 
     console.log(message);
 
+    Object.entries(message).forEach(([type, data]) => {
+      ws.emit(type, data);
+    });
+
     // TODO: message dispatch set state
 
   });
 
 
+  ws.on('name', (data) => {
+    userInfo[id].name = data;
+  });
 
   // else if (games[userInfo[id]?.currentGame]?.state === 'ongoing' || games[userInfo[id]?.currentGame]?.state === 'placement') {
   //   clearTimeout(userInfo[id].disconnectTimerCode)
