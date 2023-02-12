@@ -78,9 +78,7 @@ function App() {
     }
   }, [gameProgress])
 
-
   // socket open
-
   useEffect(() => {
     let ss = {
       setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setCharacter,
@@ -91,7 +89,6 @@ function App() {
       let message = JSON.parse(event.data)
       if (message.games) setGames(message.games)
       console.log(message)
-      postGame({ message, cookies, ss })
       if (message.cookies) {  // set cookies received from server
         Object.entries(message.cookies).forEach(([name, value]) => {
           cookies.set(name, value)
@@ -99,12 +96,11 @@ function App() {
       }
       if (message.for === 'player') {
         fromYou({ message, ss })
-        return
       } else if (message.for === 'opponent') {
         fromEnemy({ message, ss })
-        return
       }
       preGame({ message, cookies, ss })
+      postGame({ message, cookies, ss })
     }
     socket.current.addEventListener('message', messageListener)
     return () => {
@@ -116,24 +112,29 @@ function App() {
 
   return (
     <div className={styles.app}>
-      <button onClick={() => {
-        cookies.remove('user', 'name')
-        setGameProgress('preplacement')
-      }}>remove cookie</button>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
-      <div className={styles.title}>WELCOME TO BATTLESHIP</div>
+      <h1 className={styles.title}>WELCOME TO BATTLESHIP</h1>
 
       <div className={styles.boardcontainer}>
 
         {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
-          <div>
-            hello
-            <button onClick={() => {
-              cookies.set('user', { ...cookies.get('user'), state: 'matching' })
-              console.log(cookies.get('user'))
-              setMessages([...messages])
-            }}>play</button>
-            <Games games={games} />
+          <div className={styles.pagecontent}>
+            <div className={styles.games}>
+              <Games games={games} />
+            </div>
+
+            <div className={styles.homepanel}>
+              <div className={styles.boardmockmenu}>{[...Array(9)].map((i, index) => {
+                if (index === 4) {
+                  return <div onClick={() => {
+                    cookies.set('user', { ...cookies.get('user'), state: 'matching' })
+                    console.log(cookies.get('user'))
+                    setMessages([...messages])
+                  }}>play</div>
+                } else
+                  return <div></div>
+              })}</div>
+            </div>
           </div>
           : (gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
             {gameProgress === 'placement' && <button

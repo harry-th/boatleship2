@@ -20,9 +20,10 @@ const userInfo = {}//{id:{userinformation}}
 const findGroup = ({ groups, id, name, character, boatnames }) => {
     userInfo[id] = { ...userInfo[id], name, character, boatnames }
     let matchID = Object.entries(groups).find((group) => group[1] === null)
-    if (matchID && ((character === 'default' && userInfo[matchID[0]].character === 'default') || (character !== 'default' && userInfo[matchID[0]].character !== 'default'))) {
-        groups[matchID[0]] = id
-        groups[id] = matchID[0]
+    if (matchID) matchID = matchID[0]
+    if (matchID && matchID !== id && ((character === 'default' && userInfo[matchID].character === 'default') || (character !== 'default' && userInfo[matchID].character !== 'default'))) {
+        groups[matchID] = id
+        groups[id] = matchID
         let playerinfo = userInfo[id]
         let enemyinfo = userInfo[groups[id]]
         wscodes[id].send(JSON.stringify({ matched: true, enemyinfo, time: 60 }))

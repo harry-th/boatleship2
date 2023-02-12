@@ -26,6 +26,9 @@ const postGame = ({ message, cookies, ss }) => {
         return
     }
     if (message.win) {
+        ss.setMessages(prev => {
+            return [...prev, 'You won!']
+        })
         cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1, state: 'aftergame' })
         ss.timer.clear(2) //time
         if (message.hasDisconnected) {
@@ -40,9 +43,9 @@ const postGame = ({ message, cookies, ss }) => {
         return
     }
     if (message.loss) {
+        ss.setMessages(prev => [...prev, 'You lost!'])
         ss.timer.clear(1) //time
         if (message.hasDisconnected) {
-            alert('ran out of time')
         }
         cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1, state: 'aftergame' })
         setTimeout(() => {

@@ -3,10 +3,12 @@ import styles from '../styles/Customization.module.css'
 
 const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies, socket }) => {
     const [name, setName] = useState(null)
-    const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user') ? 'done' : 'name')
+    const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user').name ? 'done' : 'name')
     const [waiting, setWaiting] = useState(null)
+
     const setInformation = (e) => {
         e.preventDefault()
+        if (e.target.name.value === '' || e.target.name.value.length > 13) return
         let names = Object.values(e.target).filter(i => i.name).map(item => item.value)
         let name = names.shift()
         cookies.set('user', { ...cookies.get('user'), name })
@@ -17,9 +19,10 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
         setBoatNames(newBoatNames)
         setDisplay('done')
     }
+
     return (
         <div className={styles.customization}>
-            {!character && <div className={styles.characterselect}>
+            {(!character) && <div className={styles.characterselect}>
                 <div onClick={() => {
                     setCharacter('orangeman')
                     if (!cookies.get('user').name) setDisplay('name')
@@ -60,24 +63,27 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                     else setDisplay('done')
                 }}><h5>default mode</h5>
                     <ul>
-                        <li>can build around the edges of the board</li>
-                        <li>if you hit both the rear and head of a boat you sink the boat immediately.</li>
+                        <li>play normal battleship game</li>
                     </ul>
                 </div>
             </div>}
             <div onClick={() => {
                 setName(null)
                 setDisplay('name')
-            }}> {name || (!cookies.get('user') ? cookies.get('user').name : null)} {cookies.get('user').name && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}</div>
+            }}> {name || (!cookies.get('user') ? cookies.get('user').name : null)}
+                {cookies.get('user').name && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}
+            </div>
             <div className={styles.boatform}>
                 {(name && display === 'name') && <p className={styles.chooseBoatNames}>choose Boat names?</p>}
-                <form onSubmit={(e) => setInformation(e)}>
-                    {(display === 'name' && !cookies.get('user').name) && <div>
+                <form onSubmit={(e) => {
+                    setInformation(e)
+                }}>
+                    {((display === 'name' && !cookies.get('user').name)) && <div>
                         <div>
                             <label htmlFor='name'>name</label>
                         </div>
                         <input name='name' onChange={(e) => setName(e.target.value)}
-                            onBlur={() => { if (name) setDisplay('boats') }} />
+                            onBlur={() => { if (name !== '') setDisplay('boats') }} />
                     </div>}
                     {display === 'boats' && <div className={styles.boatfields}>
                         <h4>Choose your Boat Names:</h4>
@@ -93,7 +99,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         <button>submit</button> </div>}
                 </form>
             </div>
-            {(cookies.get('user').name !== 'noName' && character) && <div>
+            {(cookies.get('user').name && character) && <div>
                 {display === 'done' && <div>
                     <button onClick={() => {
                         let periods = () => {
@@ -106,7 +112,6 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                             }, 1000)
                         }
                         periods()
-
                         setWaiting('waiting for match')
                         socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames }))
                     }}>find game</button>

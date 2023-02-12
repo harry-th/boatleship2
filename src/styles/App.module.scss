@@ -1,11 +1,57 @@
 .app {
+  height: 100vh;
+  width: 100vw;
   text-align: center;
   .title {
-    margin-top: 30px;
+    color: white;
+    background-color: blue;
+    margin-top: 0px;
+    padding-top: 20px;
+    height: 80px;
     margin-bottom: 30px;
   }
   .boardcontainer {
     display: flex;
     justify-content: space-evenly;
+  }
+  .pagecontent {
+    height: 90vh;
+    width: 100vw;
+    display: flex;
+    justify-content: space-evenly;
+    .homepanel {
+      height: 70vh;
+      width: 20vw;
+      border: 2px solid black;
+    }
+    .boardmockmenu {
+      width: 180px;
+      height: 180px;
+      display: flex;
+      flex-wrap: wrap;
+      div {
+        cursor: pointer;
+        padding-top: 25px;
+        color: blue;
+        background-color: blue;
+        width: 60px;
+        &:hover {
+          color: white;
+          background-color: red;
+        }
+      }
+    }
+    .games {
+      align-self: center;
+      table,
+      th,
+      td {
+        border: 1px solid;
+      }
+      td {
+        text-align: left;
+        font-family: "Courier New", Courier, monospace;
+      }
+    }
   }
 }

@@ -1,37 +1,38 @@
 const Games = ({ games }) => {
     return (
-        <div>
+        <table>
+            <tr><td></td></tr>
             {Object.values(games).map((item) => {
                 if (item.disconnected && item.state === 'finished') {
                     return (
-                        <div>
-                            {item.loser} lost because {item.disconnectreason} against {item.winner}
-                        </div>
+                        <tr>
+                            <td>{item.loser} lost because {item.disconnectreason} against {item.winner}</td>
+                        </tr>
                     )
                 } else if (item.state === 'finished') {
                     return (
-                        <div>
-                            {item.winner} won playing as {item.winnerCharacter} against {item.loser} playing as {item.loserCharacter}
-                        </div>
+                        <tr>
+                            <td>{item.winner} won playing as {item.winnerCharacter} against {item.loser} playing as {item.loserCharacter}</td>
+                        </tr>
                     )
                 } else if (item.state === 'placement') {
                     return (
-                        <div>
-                            {item.player1} and {item.player2} are placing their boats
-                        </div>
+                        <tr>
+                            <td>{item.player1} and {item.player2} are placing their boats</td>
+                        </tr>
                     )
                 } else if (item.state === 'ongoing') {
                     return (
-                        <div>
-                            {item.player1} and {item.player2} are playing
-                        </div>
+                        <tr>
+                            <td>{item.player1} and {item.player2} are playing</td>
+                        </tr>
                     )
                 }
                 else {
-                    return <div></div>
+                    return <tr></tr>
                 }
             })}
-        </div>
+        </table>
     )
 }
 

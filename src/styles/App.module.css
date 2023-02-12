@@ -1,11 +1,57 @@
 .app {
+  height: 100vh;
+  width: 100vw;
   text-align: center;
 }
 .app .title {
-  margin-top: 30px;
+  color: white;
+  background-color: blue;
+  margin-top: 0px;
+  padding-top: 20px;
+  height: 80px;
   margin-bottom: 30px;
 }
 .app .boardcontainer {
   display: flex;
   justify-content: space-evenly;
+}
+.app .pagecontent {
+  height: 90vh;
+  width: 100vw;
+  display: flex;
+  justify-content: space-evenly;
+}
+.app .pagecontent .homepanel {
+  height: 70vh;
+  width: 20vw;
+  border: 2px solid black;
+}
+.app .pagecontent .boardmockmenu {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  flex-wrap: wrap;
+}
+.app .pagecontent .boardmockmenu div {
+  cursor: pointer;
+  padding-top: 25px;
+  color: blue;
+  background-color: blue;
+  width: 60px;
+}
+.app .pagecontent .boardmockmenu div:hover {
+  color: white;
+  background-color: red;
+}
+.app .pagecontent .games {
+  align-self: center;
+}
+.app .pagecontent .games table,
+.app .pagecontent .games th,
+.app .pagecontent .games td {
+  border: 1px solid;
+}
+.app .pagecontent .games td {
+  text-align: left;
+  font-family: "Courier New", Courier, monospace;
 }/*# sourceMappingURL=App.module.css.map */
