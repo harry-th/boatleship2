@@ -41,6 +41,19 @@ const userInfo = {}//{id:{userinformation}}
 //   }
 // }
 
+class UserInfo {
+  constructor() {
+    this.name = uniqueNamesGenerator({
+      dictionaries: [adjectives, animals],
+      separator: ' ',
+      length: 2,
+    });
+    this.boatNames = ['destroyer', 'cruiser', 'battleship', 'carrier'];
+    this.wins = 0;
+    this.losses = 0;
+  }
+}
+
 
 // server startup
 wss.on('listening', () => {
@@ -64,24 +77,13 @@ wss.on('connection', (ws, req) => {
     // generate a unique user id
     do { id = v4(); } while (groups.hasOwnProperty(id));
 
-    // PLACEHOLDER
-    userInfo[id] = {
-      name: uniqueNamesGenerator({
-        dictionaries: [adjectives, animals],
-        separator: ' ',
-        length: 2,
-      }),
-      // the rest is in App right now
-    };
+    // create new user + send client session ID
+    userInfo[id] = new UserInfo();
     ws.send({ sessionID: id });
-
-    console.log('new user:', id);
-  } else {
-    console.log('existing user:', id);
   }
 
   // send player info
-  ws.send(userInfo[id]);
+  ws.send({ player: userInfo[id] });
 
   // PLACEHOLDER: send page set
   ws.send({ page: 'menu' });
@@ -100,20 +102,16 @@ wss.on('connection', (ws, req) => {
 
   // dispatch messages by property
   ws.on('message', (data) => {
-    console.log(JSON.parse(data));
-    
     Object.entries(JSON.parse(data)).forEach(([type, detail]) => {
       ws.emit(type, detail);
     });
   });
 
-  // player data
+  // update player data
   ws.on('player', (data) => {
-    console.log(userInfo[id]);
+    console.log('updated player:', data);
     userInfo[id] = data;
   });
-
-
 
   // else if (games[userInfo[id]?.currentGame]?.state === 'ongoing' || games[userInfo[id]?.currentGame]?.state === 'placement') {
   //   clearTimeout(userInfo[id].disconnectTimerCode)

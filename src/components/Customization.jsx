@@ -4,24 +4,17 @@ import styles from "../styles/Customization.module.css";
 import { client, useClient } from "../server/client.js";
 
 
-const Customization = ({
-  player, setPlayer
-}) => {
-
-  const {test, setTest} = useClient('test', 0);
-
+const Customization = ({userInfo, setUserInfo}) => {
 
   const setInformation = (e) => {
     e.preventDefault();
     const elems = e.target.elements;
 
-    setPlayer({
-      ...player,
-      name: elems.name.value || player.name,
-      boatNames: player.boatNames.map((boatName, i) => {
-        return elems.boatName[i].value || boatName;
-      })
-    })
+    const name = elems.name.value || userInfo.name;
+    const boatNames = userInfo.boatNames.map((boatName, i) => {
+      return elems.boatNames[i].value || boatName;
+    });
+    setUserInfo({...userInfo, name, boatNames});
   };
 
   // return (
@@ -132,15 +125,15 @@ const Customization = ({
 
   return (
     <div>
-      <div>{player.name} --- {player.wins}/{player.losses}</div>
+      <div>{userInfo.name} --- {userInfo.wins}/{userInfo.losses}</div>
       <form onSubmit={setInformation}>
         <label htmlFor='name'>Name</label>
-        <input type='text' name='name' placeholder={player.name} />
-        {player.boatNames.map((boatName, i) => {
+        <input type='text' name='name' placeholder={userInfo.name} />
+        {userInfo.boatNames.map((boatName, i) => {
           return (
             <div key={i}>
-              <label htmlFor='boatName'>{player.boatNames[i]}</label>
-              <input type='text' name='boatName' placeholder={boatName} />
+              <label htmlFor='boatNames'>{userInfo.boatNames[i]}</label>
+              <input type='text' name='boatNames' placeholder={boatName} />
             </div>
           );
         })}
@@ -148,8 +141,6 @@ const Customization = ({
       </form>
     </div>
   );
-
-
 }
 
 export default Customization;

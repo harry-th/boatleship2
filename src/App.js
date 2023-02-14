@@ -25,14 +25,6 @@ import OrientationButton from "./components/OrientationButton.jsx";
 // initialize client WebSocket connection
 client.connect('ws://localhost:8080/ws');
 
-// initial player info state
-const playerInit = {
-  name: 'noName',
-  boatNames: ['destroyer', 'cruiser', 'battleship', 'carrier'],
-  wins: 0,
-  losses: 0
-};
-
 // TODO: make logic that overlaps
 //     client can use to render
 //     server can use to verify
@@ -45,7 +37,8 @@ function App() {
   const {page, setPage} = useClient('page', 'disconnected');
   const {character, setCharacter} = useClient('character', null);
 
-  const {player, setPlayer} = useClient('player', playerInit);
+
+  const {userInfo, setUserInfo} = useClient('player', null);
 
 
   const removeCookie = () => {
@@ -62,7 +55,7 @@ function App() {
         {page === 'disconnected' ?
           <>waiting to connect</>
         : page === 'menu' ?
-          <Customization player={player} setPlayer={setPlayer}/>
+          <Customization userInfo={userInfo} setUserInfo={setUserInfo}/>
         : page === 'placement' || page === 'ongoing' ?
           <>
             page === 'placement' && <OrientationButton />

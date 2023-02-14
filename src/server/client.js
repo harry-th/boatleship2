@@ -15,10 +15,12 @@ class Client extends EventTarget {
     this._socket = null;
   }
 
-  send(type, data) {
-    this._socket.send(JSON.stringify({ type, data }));
+  // send data object as string
+  send(data) {
+    this._socket.send(JSON.stringify(data));
   }
 
+  // close underlying socket
   close() {
     this._socket.close();
   }
@@ -29,6 +31,7 @@ class Client extends EventTarget {
     this._socket.close();
   }
 
+  // create a reconnecting WebSocket connection
   connect(url, protocols) {
     this._socket = new WebSocket(url, protocols);
 
@@ -73,7 +76,7 @@ export function useClient(type, initialState) {
       throw new Error('Cannot use updater function in useClient action.');
     }
     setState(value);
-    client.send(type, value);
+    client.send({ [type]: value });
   }
 
   // receive/set state
