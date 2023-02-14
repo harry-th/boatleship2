@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 // import { uniqueNamesGenerator, adjectives, animals } from "unique-names-generator";
 
 import "./App.css";
-import cookies from "./helpers/cookies.js";
+import { client, useClient } from "./server/client.js"
 import styles from "./styles/App.module.css"
 
 import Customization from "./components/Customization.jsx";
@@ -22,64 +22,8 @@ import OrientationButton from "./components/OrientationButton.jsx";
 
 // cookies.remove('sessionID')
 
-
-// create reconnecting websocket connection
-let socket;
-(function reconnect() {
-  socket = new WebSocket('ws://localhost:8080/ws');
-
-  socket.addEventListener('close', (e) => {
-    reconnect();
-  });
-
-  socket.addEventListener('error', (e) => {
-    socket.close();
-  });
-
-  socket.addEventListener('message', (e) => {
-    const message = JSON.parse(e.data);
-    Object.entries(message).forEach(([type, detail]) => {
-      const event = new CustomEvent(type, { detail });
-      socket.dispatchEvent(event);
-    });
-  });
-
-  socket.addEventListener('sessionID', (e) => {
-    cookies.add('sessionID', e.detail);
-  });
-})();
-
-// custom hook wrapping useState with socket sending on update.
-// NOTE: Updater functions cannot be used. 
-const useSyncState = (type, initialState) => {
-  const [state, setState] = useState(initialState);
-
-  const sendState = (value) => {
-    if (typeof value === 'function') {
-      throw new Error('Cannot use updater function in useClient action.');
-    }
-    setState(value);
-    socket.send(JSON.stringify({ [type]: value }));
-  }
-
-  useEffect(() => {
-    const listener = (e) => {
-      setState(e.detail);
-    };
-    socket.addEventListener(type, listener);
-    return () => {
-      socket.removeEventListener(type, listener)
-    }
-  }, [type]);
-
-  // create state/setState variables
-  const set = 'set' + type.charAt(0).toUpperCase() + type.slice(1);
-  return {
-    [type]: state,
-    [set]: sendState
-  };
-};
-
+// initialize client WebSocket connection
+client.connect('ws://localhost:8080/ws');
 
 // initial player info state
 const playerInit = {
@@ -95,60 +39,19 @@ const playerInit = {
 //     create character modules which include hooks and server functions
 //     closely matching, using helper functions to render/verify somehow 
 
-setInterval(() => {
-  console.log(typeof socket);
-}, 1000);
-
-
 function App() {
   // const [orientation, setOrientation] = useState('orientation', 'v');
 
-  const {gameProgress, setGameProgress} = useSyncState('gameProgress', 'preplacement');
+  const {page, setPage} = useClient('page', 'disconnected');
+  const {character, setCharacter} = useClient('character', null);
 
-
-  const {character, setCharacter} = useSyncState('character', null);
-
-
-  const player = {
-    ...useSyncState('name', playerInit.name),
-    ...useSyncState('boatNames', playerInit.boatNames),
-    ...useSyncState('wins', playerInit.wins),
-    ...useSyncState('losses', playerInit.losses)
-  };
+  const {player, setPlayer} = useClient('player', playerInit);
 
 
   const removeCookie = () => {
-    cookies.remove('sessionID');
-    setGameProgress('preplacement');
+    client.reset();
+    setPage('disconnected');
   };
-
-
-  const page = () => {
-    if (gameProgress === 'preplacement') {
-      console.log('thing');
-      return (
-        <Customization
-          useSyncState={useSyncState}
-          gameProgress={gameProgress}
-          setGameProgress={setGameProgress}
-          {...player}
-        />
-      );
-    }
-    else if (gameProgress === 'placement' || gameProgress === 'ongoing')
-    {
-      return (
-        <>
-          {gameProgress === 'placement' && <OrientationButton />}
-
-        </>
-
-      );
-    }
-
-
-  }
-
 
   return (
     <div className={styles.app}>
@@ -156,7 +59,20 @@ function App() {
       <div className={styles.title}>WELCOME TO BATTLESHIP</div>
 
       <div className={styles.boardcontainer}>
-        {page()}
+        {page === 'disconnected' ?
+          <>waiting to connect</>
+        : page === 'menu' ?
+          <Customization player={player} setPlayer={setPlayer}/>
+        : page === 'placement' || page === 'ongoing' ?
+          <>
+            page === 'placement' && <OrientationButton />
+            Game!
+          </>
+        :
+          <>
+            Nada
+          </>
+        }
       </div>
     </div>
   );

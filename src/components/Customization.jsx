@@ -1,29 +1,27 @@
-import { useState } from 'react'
-import styles from '../styles/Customization.module.css'
+import { useState } from "react";
+
+import styles from "../styles/Customization.module.css";
+import { client, useClient } from "../server/client.js";
+
 
 const Customization = ({
-  useSyncState,
-  gameProgress, setGameProgress,
-  name, setName,
-  boatNames, setBoatNames,
-  wins,
-  losses
+  player, setPlayer
 }) => {
 
-  const {test, setTest} = useSyncState('test', 0);
+  const {test, setTest} = useClient('test', 0);
 
 
   const setInformation = (e) => {
     e.preventDefault();
     const elems = e.target.elements;
 
-    console.log(test);
-    setTest(test + 1);
-
-    // setName(elems.name.value || name);
-    // setBoatNames(boatNames.map((boatName, i) => {
-    //   return elems.boatName[i].value || boatName;
-    // }));
+    setPlayer({
+      ...player,
+      name: elems.name.value || player.name,
+      boatNames: player.boatNames.map((boatName, i) => {
+        return elems.boatName[i].value || boatName;
+      })
+    })
   };
 
   // return (
@@ -134,14 +132,14 @@ const Customization = ({
 
   return (
     <div>
-      <div>{name} --- {wins}/{losses}</div>
+      <div>{player.name} --- {player.wins}/{player.losses}</div>
       <form onSubmit={setInformation}>
         <label htmlFor='name'>Name</label>
-        <input type='text' name='name' placeholder={name} />
-        {boatNames.map((boatName, i) => {
+        <input type='text' name='name' placeholder={player.name} />
+        {player.boatNames.map((boatName, i) => {
           return (
             <div key={i}>
-              <label htmlFor='boatName'>{boatNames[i]}</label>
+              <label htmlFor='boatName'>{player.boatNames[i]}</label>
               <input type='text' name='boatName' placeholder={boatName} />
             </div>
           );
@@ -153,5 +151,5 @@ const Customization = ({
 
 
 }
-export default Customization;
 
+export default Customization;

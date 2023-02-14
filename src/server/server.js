@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 import { WebSocketServer } from 'ws';
 import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
 
+
 // import { normalSinkCheck, cornerSinkCheck } from './boatSinkCheck';
 // import callBluff from './callBluff';
 // import genericTurnAction from './genericTurnAction';
@@ -60,7 +61,6 @@ wss.on('connection', (ws, req) => {
 
   // validate user session cookies
   if (!userInfo[id]) {
-
     // generate a unique user id
     do { id = v4(); } while (groups.hasOwnProperty(id));
 
@@ -71,47 +71,49 @@ wss.on('connection', (ws, req) => {
         separator: ' ',
         length: 2,
       }),
+      // the rest is in App right now
     };
     ws.send({ sessionID: id });
-    
+
     console.log('new user:', id);
   } else {
     console.log('existing user:', id);
   }
 
-  // send user info
+  // send player info
   ws.send(userInfo[id]);
 
-  // close on error
-  ws.addEventListener('error', (e) => {
-    ws.close();
-  });
+  // PLACEHOLDER: send page set
+  ws.send({ page: 'menu' });
 
-  // socket connection closed
-  ws.addEventListener('close', (e) => {
-    console.log(`closed (${e.code}): ${e.reason}`);
+  // handle disconnect on close
+  ws.on('close', (code, reason) => {
+    console.log(`closed: ${code}`);
 
     // TODO: handle disconnect
   });
 
-  // message dispatch
-  ws.addEventListener('message', (e) => {
-    const message = JSON.parse(e.data);
+  // close on error
+  ws.on('error', (error) => {
+    ws.close();
+  });
 
-    console.log(message);
-
-    Object.entries(message).forEach(([type, data]) => {
-      ws.emit(type, data);
+  // dispatch messages by property
+  ws.on('message', (data) => {
+    console.log(JSON.parse(data));
+    
+    Object.entries(JSON.parse(data)).forEach(([type, detail]) => {
+      ws.emit(type, detail);
     });
+  });
 
-    // TODO: message dispatch set state
-
+  // player data
+  ws.on('player', (data) => {
+    console.log(userInfo[id]);
+    userInfo[id] = data;
   });
 
 
-  ws.on('name', (data) => {
-    userInfo[id].name = data;
-  });
 
   // else if (games[userInfo[id]?.currentGame]?.state === 'ongoing' || games[userInfo[id]?.currentGame]?.state === 'placement') {
   //   clearTimeout(userInfo[id].disconnectTimerCode)
