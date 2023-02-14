@@ -8,6 +8,7 @@ const preGame = ({ message, cookies, ss }) => {
             return [...prev, `Matched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
         })
         ss.setGameProgress('placement')
+        ss.setCharacter(message.character)
         return
     }
     if (message.boatssent) {

@@ -4,6 +4,7 @@ import styles from '../styles/Customization.module.css'
 const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies, socket }) => {
     const [name, setName] = useState(null)
     const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user').name ? 'done' : 'name')
+    const [privacy, setPrivacy] = useState(false)
     const [waiting, setWaiting] = useState(null)
 
     const setInformation = (e) => {
@@ -11,7 +12,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
         if (e.target.name.value === '' || e.target.name.value.length > 13) return
         let names = Object.values(e.target).filter(i => i.name).map(item => item.value)
         let name = names.shift()
-        cookies.set('user', { ...cookies.get('user'), name })
+        cookies.set('user', { ...cookies.get('user'), name, character, boatNames })
         let newBoatNames = [...boatNames]
         for (let i = 0; i < names.length; i++) {
             newBoatNames[i] = names[i] || newBoatNames[i]
@@ -49,7 +50,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                 </div>
                 <div onClick={() => {
                     setCharacter('cornerman')
-                    if (!cookies.get('user')) setDisplay('name')
+                    if (!cookies.get('user').name) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>corner mode</h5>
                     <ul>
@@ -59,7 +60,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                 </div>
                 <div onClick={() => {
                     setCharacter('default')
-                    if (!cookies.get('user')) setDisplay('name')
+                    if (!cookies.get('user').name) setDisplay('name')
                     else setDisplay('done')
                 }}><h5>default mode</h5>
                     <ul>
@@ -83,7 +84,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                             <label htmlFor='name'>name</label>
                         </div>
                         <input name='name' onChange={(e) => setName(e.target.value)}
-                            onBlur={() => { if (name !== '') setDisplay('boats') }} />
+                            onBlur={() => { if (name) setDisplay('boats') }} />
                     </div>}
                     {display === 'boats' && <div className={styles.boatfields}>
                         <h4>Choose your Boat Names:</h4>
@@ -113,8 +114,13 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         }
                         periods()
                         setWaiting('waiting for match')
-                        socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames }))
+                        socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames, privacy }))
                     }}>find game</button>
+                    private?: <input type="checkbox" onChange={() => {
+                        console.log(privacy)
+                        setPrivacy(prev => !prev)
+                    }} />
+
                     <button onClick={() => {
                         setDisplay('boats')
                     }}>rename boats

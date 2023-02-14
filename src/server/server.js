@@ -16,7 +16,34 @@ const games = {} //gameId: {state: 'ongoing', players:[id1, id2], player1:name, 
 const wscodes = {} //{id: ws}
 const userData = {} //{id:{gameinformation}}
 const userInfo = {}//{id:{userinformation}}
+const opengames = {}
+const matchcode = ({ id, code, character, name, boatnames }) => { // code based matching
+    if ((character !== 'default' && opengames[code].character === 'default') || (character === 'default' && opengames[code].character !== 'default')) {
+        let charactertype
+        if (opengames[code].character === 'default') charactertype = 'default'
+        else charactertype = 'character'
+        wscodes[id].send(JSON.stringify({ issue: 'character type mismatch', charactertype }))
+    } else
+        if ((opengames).hasOwnProperty(code) && ((character === 'default' && opengames[code].character === 'default') || (character !== 'default' && opengames[code].character !== 'default'))) {
+            userInfo[id] = { ...userInfo[id], name, character, boatnames }
 
+            groups[opengames[code].id] = id
+            groups[id] = opengames[code].id
+
+            delete opengames[code]
+            delete games[code]
+
+            let playerinfo = userInfo[id]
+            let enemyinfo = userInfo[groups[id]]
+            wscodes[id].send(JSON.stringify({ codematch: true, matched: true, enemyinfo, time: 60, character: playerinfo.character }))
+            wscodes[groups[id]].send(JSON.stringify({ matched: true, enemyinfo: playerinfo, time: 60, character: enemyinfo.character }))
+            const gameId = uuid.v4()
+            games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name }
+            playerinfo.currentGame = gameId
+            enemyinfo.currentGame = gameId
+            placementTimer({ userData, userInfo, groups, games, id, wscodes })
+        }
+}
 const findGroup = ({ groups, id, name, character, boatnames }) => {
     userInfo[id] = { ...userInfo[id], name, character, boatnames }
     let matchID = Object.entries(groups).find((group) => group[1] === null)
@@ -50,6 +77,8 @@ wss.on('listening', () => {
 wss.on('connection', (ws, req) => {
     const cookies = new Cookies(req.headers.cookie)
     let id = cookies?.get('user')?.id
+    wscodes[id] = ws
+
     ws.send(JSON.stringify({ games }))
     // create new user
     if (!userInfo[id]) {
@@ -62,9 +91,7 @@ wss.on('connection', (ws, req) => {
                 'user': { id, state: 'prematching', wins: 0, losses: 0 }
             }
         }))
-
         console.log('new user:', id)
-
     } else if (games[userInfo[id]?.currentGame]?.state === 'ongoing') {
         clearTimeout(userInfo[id].disconnectTimerCode)
         delete userInfo[id].disconnectTimerCode
@@ -118,7 +145,6 @@ wss.on('connection', (ws, req) => {
     }
 
     // update user socket
-    wscodes[id] = ws
 
     ws.on('close', (code, reason) => {
         if (code === 1001 && (games[userInfo[id]?.currentGame]?.state === 'ongoing')) {
@@ -374,9 +400,18 @@ wss.on('connection', (ws, req) => {
             }
         }
         if (message.state === 'matching') {
-            if (!groups.hasOwnProperty(id) || message.character !== userInfo[id].character) {
+            if ((!groups.hasOwnProperty(id) || message.character !== userInfo[id].character) && !message.privacy) {
                 findGroup({ groups, id: id, name: message.name, character: message.character, boatnames: message.boatNames })
+            } else if (message.privacy) { // code based matching
+                const gameId = uuid.v4() //currentgame = code
+                games[gameId] = { state: 'looking for match', player: message.name }
+                opengames[gameId] = { id: message.id, character: message.character }
+                userInfo[id] = { ...userInfo[id], name: message.name, character: message.character, boatnames: message.boatNames }
+                ws.send(JSON.stringify({ code: gameId }))
             }
+        }
+        if (message.matchcode) {// code based matching
+            matchcode({ id: message.id, code: message.code, name: message.name, character: message.character, boatnames: message.boatNames })
         }
     });
 });

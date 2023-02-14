@@ -39,6 +39,7 @@ function App() {
   const [turn, setTurn] = useState(true)
   const [orientation, setOrientation] = useState('h')
   const [games, setGames] = useState([])
+  const [display, setDisplay] = useState('home')
   const timer = useTimer()
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
@@ -87,6 +88,7 @@ function App() {
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
+      if (message.code) console.log(message.code)
       if (message.games) setGames(message.games)
       console.log(message)
       if (message.cookies) {  // set cookies received from server
@@ -119,23 +121,45 @@ function App() {
 
         {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
           <div className={styles.pagecontent}>
-            <div className={styles.games}>
-              <Games games={games} />
-            </div>
-
-            <div className={styles.homepanel}>
+            {display === 'home' &&
               <div className={styles.boardmockmenu}>{[...Array(9)].map((i, index) => {
-                if (index === 4) {
+                if (index === 0) {
+                  return <div onClick={() => {
+                    setDisplay('current games')
+                  }}><p>current games</p></div>
+                } else if (index === 2) {
+                  return <div onClick={() => {
+                    setDisplay('finished games')
+                  }}><p>finished games</p></div>
+                } else if (index === 3) {
+                  return <div onClick={() => {
+                    setDisplay('open games')
+                  }}><p>open games</p></div>
+                } else if (index === 4) {
                   return <div onClick={() => {
                     cookies.set('user', { ...cookies.get('user'), state: 'matching' })
                     console.log(cookies.get('user'))
                     setMessages([...messages])
-                  }}>play</div>
+                  }}><p>Play</p></div>
                 } else
                   return <div></div>
-              })}</div>
+              })}
+              </div>
+            }
+            {display === 'current games' && <div className={styles.games}>
+              <Games games={games} current />
             </div>
+            }
+            {display === 'finished games' && <div className={styles.games}>
+              <Games games={games} finished />
+            </div>
+            }
+            {display === 'open games' && <div className={styles.games}>
+              <Games games={games} socket={socket} cookies={cookies} open />
+            </div>
+            }
           </div>
+          // </div>
           : (gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
             {gameProgress === 'placement' && <button
               onClick={() => { orientation === 'v' ? setOrientation('h') : setOrientation('v') }}>

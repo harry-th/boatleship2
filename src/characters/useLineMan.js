@@ -117,13 +117,7 @@ const useLineMan = () => {
         return (
             <div
 
-                onMouseLeave={(e) => {
-                    setEnemyBoardState(prev => {
-                        if (Number(lastShots[0]) && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
-                        if (Number(lastShots[1]) && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
-                        return { ...prev }
-                    })
-                }}
+
             >
                 charges: {charges}
                 <button
@@ -133,7 +127,14 @@ const useLineMan = () => {
                             setTurn(false)
                         }
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseLeave={(e) => {
+                        setEnemyBoardState(prev => {
+                            if (Number(lastShots[0]) && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
+                            if (Number(lastShots[1]) && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
+                            return { ...prev }
+                        })
+                    }}
+                    onMouseOver={(e) => {
                         if (turn) {
                             setEnemyBoardState(prev => {
                                 let isNew = false

@@ -25,19 +25,23 @@
       border: 2px solid black;
     }
     .boardmockmenu {
-      width: 180px;
-      height: 180px;
+      width: 720px;
+      height: 720px;
       display: flex;
       flex-wrap: wrap;
       div {
         cursor: pointer;
-        padding-top: 25px;
         color: blue;
         background-color: blue;
-        width: 60px;
+        width: 240px;
+        height: 210px;
+        padding-top: 30px;
         &:hover {
           color: white;
-          background-color: red;
+          background-color: rgb(78, 78, 188);
+        }
+        p {
+          font-size: 50px;
         }
       }
     }

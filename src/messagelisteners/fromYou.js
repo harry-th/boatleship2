@@ -56,6 +56,7 @@ const fromYou = ({ message, ss }) => {
                 }
                 else if (shotresults.hit.length > 0) return [...prev, `You fired at ${shotresults.hit} and it was a hit!`]
                 else if (shotresults.missed.length > 0) return [...prev, `You fired at ${shotresults.missed} but it missed!`]
+                else return prev
             })
         }
         ss.setEnemyBoardState(prev => {

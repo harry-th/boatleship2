@@ -18,6 +18,12 @@ const postGame = ({ message, cookies, ss }) => {
         ss.timer.setStart(1, message.time)
         cookies.set('user', { ...cookies.get('user'), state: 'matched' })
         const { enemyinfo } = message
+        ss.setLastShots(prev => {
+            return null
+        })
+        ss.setBluffing(prev => {
+            if (prev) return false
+        })
         ss.setEnemyInfo(enemyinfo)
         ss.setMessages(prev => {
             return [...prev, `Rematched with ${enemyinfo.name} playing as ${enemyinfo.character}!`]
