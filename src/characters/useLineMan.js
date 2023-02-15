@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { socket } from './server/client';
+import { socket } from '../server/client';
 
 
 const useLineMan = () => {

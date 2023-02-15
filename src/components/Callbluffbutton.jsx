@@ -1,4 +1,4 @@
-import { socket } from './server/client';
+import { socket } from '../server/client';
 
 
 const Callbluffbutton = ({ setTurn, cookies }) => {

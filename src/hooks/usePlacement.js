@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react"
+import { socket } from '../server/client'
+
 const defaultRules = ({ positions, targets, orientation }) => {
     if (positions.some((pos) => targets.includes(pos))) return true
     if (orientation === 'h' && (Math.floor(positions[positions.length - 1] / 10) * 10) - (Math.floor(positions[0] / 10) * 10) > 0) return true

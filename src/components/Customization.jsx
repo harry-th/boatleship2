@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styles from '../styles/Customization.module.css'
-import { socket } from './server/client';
+import { socket } from '../server/client';
 
 
 const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies }) => {

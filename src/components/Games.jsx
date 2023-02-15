@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { socket } from './server/client';
+import { socket } from '../server/client';
 
 
 const Games = ({ games, finished, current, open, cookies }) => {

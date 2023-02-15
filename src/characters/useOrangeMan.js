@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { socket } from './server/client';
+import { socket } from '../server/client';
 
 let useOrangeMan = () => {
     const [bluffing, setBluffing] = useState(sessionStorage.getItem('bluffing') ? JSON.parse(sessionStorage.getItem('bluffing')) : false)

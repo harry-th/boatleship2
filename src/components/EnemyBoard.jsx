@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from '../styles/Board.module.css'
-import { socket } from './server/client';
+import { socket } from '../server/client';
 
 
 const Board = ({ cookies, enemyBoardState,
