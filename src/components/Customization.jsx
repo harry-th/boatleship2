@@ -1,7 +1,7 @@
-import { useState } from "react";
+// import { useState } from "react";
 
-import styles from "../styles/Customization.module.css";
-import { client, useClient } from "../server/client.js";
+// import styles from "../styles/Customization.module.css";
+// import { client, useClient } from "../server/client.js";
 
 
 const Customization = ({userInfo, setUserInfo}) => {
@@ -16,6 +16,25 @@ const Customization = ({userInfo, setUserInfo}) => {
     });
     setUserInfo({...userInfo, name, boatNames});
   };
+
+  return (
+    <div>
+      <div>{userInfo.name} --- {userInfo.wins}/{userInfo.losses}</div>
+      <form onSubmit={setInformation}>
+        <label htmlFor='name'>Name</label>
+        <input type='text' name='name' placeholder={userInfo.name} />
+        {userInfo.boatNames.map((boatName, i) => {
+          return (
+            <div key={i}>
+              <label htmlFor='boatNames'>{userInfo.boatNames[i]}</label>
+              <input type='text' name='boatNames' placeholder={boatName} />
+            </div>
+          );
+        })}
+        <input type="submit" value="Submit" />
+      </form>
+    </div>
+  );
 
   // return (
   //   <div className={styles.customization}>
@@ -122,25 +141,6 @@ const Customization = ({userInfo, setUserInfo}) => {
   //       </div>}</div>}
   //   </div>
   // );
-
-  return (
-    <div>
-      <div>{userInfo.name} --- {userInfo.wins}/{userInfo.losses}</div>
-      <form onSubmit={setInformation}>
-        <label htmlFor='name'>Name</label>
-        <input type='text' name='name' placeholder={userInfo.name} />
-        {userInfo.boatNames.map((boatName, i) => {
-          return (
-            <div key={i}>
-              <label htmlFor='boatNames'>{userInfo.boatNames[i]}</label>
-              <input type='text' name='boatNames' placeholder={boatName} />
-            </div>
-          );
-        })}
-        <input type="submit" value="Submit" />
-      </form>
-    </div>
-  );
 }
 
 export default Customization;

@@ -1,15 +1,15 @@
-import Cookies from 'universal-cookie';
-import { v4 } from 'uuid';
-import { WebSocketServer } from 'ws';
-import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
+import Cookies from "universal-cookie";
+import { v4 } from "uuid";
+import { WebSocketServer } from "ws";
+import { uniqueNamesGenerator, adjectives, animals } from "unique-names-generator";
 
+// import { normalSinkCheck, cornerSinkCheck } from "./boatSinkCheck.js";
+// import callBluff from "./callBluff.js";
+// import genericTurnAction from "./genericTurnAction.js";
+// import handleOrange from "./handleOrange.js";
+// import reconnectTimer from "./reconnectTimer.js";
+// import retaliation from "./retaliation.js";
 
-// import { normalSinkCheck, cornerSinkCheck } from './boatSinkCheck';
-// import callBluff from './callBluff';
-// import genericTurnAction from './genericTurnAction';
-// import handleOrange from './handleOrange';
-// import reconnectTimer from './reconnectTimer';
-// import retaliation from './retaliation';
 
 // TODO: make server secure
 // https://stackoverflow.com/questions/31338927/how-to-create-securetls-ssl-websocket-server
@@ -41,19 +41,6 @@ const userInfo = {}//{id:{userinformation}}
 //   }
 // }
 
-class UserInfo {
-  constructor() {
-    this.name = uniqueNamesGenerator({
-      dictionaries: [adjectives, animals],
-      separator: ' ',
-      length: 2,
-    });
-    this.boatNames = ['destroyer', 'cruiser', 'battleship', 'carrier'];
-    this.wins = 0;
-    this.losses = 0;
-  }
-}
-
 
 // server startup
 wss.on('listening', () => {
@@ -78,12 +65,21 @@ wss.on('connection', (ws, req) => {
     do { id = v4(); } while (groups.hasOwnProperty(id));
 
     // create new user + send client session ID
-    userInfo[id] = new UserInfo();
+    userInfo[id] = {
+      name: uniqueNamesGenerator({
+        dictionaries: [adjectives, animals],
+        separator: ' ',
+        length: 2,
+      }),
+      boatNames: ['destroyer', 'cruiser', 'battleship', 'carrier'],
+      wins: 0,
+      losses: 0
+    };
     ws.send({ sessionID: id });
   }
 
   // send player info
-  ws.send({ player: userInfo[id] });
+  // ws.send({ userInfo: userInfo[id] });
 
   // PLACEHOLDER: send page set
   ws.send({ page: 'menu' });
@@ -107,11 +103,39 @@ wss.on('connection', (ws, req) => {
     });
   });
 
-  // update player data
-  ws.on('player', (data) => {
-    console.log('updated player:', data);
-    userInfo[id] = data;
-  });
+  // ==========================================================================
+
+  // initialize a piece of player state
+  // add a listener which handles messages of this type
+  // create an initial game state
+  const playerState = (type, listener, initialState, sendInit) => {
+    // send initial state to client
+    if (sendInit) {
+      ws.send({ [type]: initialState });
+    }
+
+    // handle messages
+    ws.on(type, listener);
+  };
+
+  // update player data (only name/boatNames)
+  playerState('userInfo', (data) => {
+
+    userInfo[id].name = data.name;
+    userInfo[id].boatNames = data.boatNames;
+
+    // PLACEHOLDER: move player to page after submitting info
+    ws.send({ page: 'placement' });
+
+    
+
+  }, userInfo[id], true);
+
+  // NOTES:
+  // can be nested in callbacks, adding handlers only when in certain pages/gameProgress states
+  // issue with callbacks is you can't handle reconnects easily
+
+
 
   // else if (games[userInfo[id]?.currentGame]?.state === 'ongoing' || games[userInfo[id]?.currentGame]?.state === 'placement') {
   //   clearTimeout(userInfo[id].disconnectTimerCode)

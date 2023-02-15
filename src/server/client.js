@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import cookie from 'cookie';
+import { useEffect, useState } from 'react';
+import Cookies from 'universal-cookie';
+
 
 // default cookie attributes
 const cookieOpts = {
@@ -13,6 +14,7 @@ class Client extends EventTarget {
   constructor() {
     super();
     this._socket = null;
+    this._cookies = new Cookies();
   }
 
   // send data object as string
@@ -27,7 +29,7 @@ class Client extends EventTarget {
 
   // clear cookies and close connection
   reset() {
-    document.cookie = cookie.serialize('sessionID', '', cookieOpts);
+    Cookies.remove('sessionID', cookieOpts);
     this._socket.close();
   }
 
@@ -57,7 +59,7 @@ class Client extends EventTarget {
 
     // add client session cookies
     this.addEventListener('sessionID', (e) => {
-      document.cookie = cookie.serialize('sessionID', e.detail, cookieOpts);
+      Cookies.set('sessionID', e.detail, cookieOpts);
     });
   }
 }

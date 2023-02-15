@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-// import { uniqueNamesGenerator, adjectives, animals } from "unique-names-generator";
+// import { useEffect, useState } from "react";
 
 import "./App.css";
 import { client, useClient } from "./server/client.js"
@@ -20,25 +19,14 @@ import OrientationButton from "./components/OrientationButton.jsx";
 // import useTimer from "./hooks/timer";
 
 
-// cookies.remove('sessionID')
-
 // initialize client WebSocket connection
 client.connect('ws://localhost:8080/ws');
 
-// TODO: make logic that overlaps
-//     client can use to render
-//     server can use to verify
-//     create character modules which include hooks and server functions
-//     closely matching, using helper functions to render/verify somehow 
-
 function App() {
-  // const [orientation, setOrientation] = useState('orientation', 'v');
-
   const {page, setPage} = useClient('page', 'disconnected');
-  const {character, setCharacter} = useClient('character', null);
+  // const {character, setCharacter} = useClient('character', null);
 
-
-  const {userInfo, setUserInfo} = useClient('player', null);
+  const {userInfo, setUserInfo} = useClient('userInfo', null);
 
 
   const removeCookie = () => {
@@ -58,12 +46,11 @@ function App() {
           <Customization userInfo={userInfo} setUserInfo={setUserInfo}/>
         : page === 'placement' || page === 'ongoing' ?
           <>
-            page === 'placement' && <OrientationButton />
-            Game!
+            {'<Board />'}
           </>
         :
           <>
-            Nada
+            {'<Nada />'}
           </>
         }
       </div>
