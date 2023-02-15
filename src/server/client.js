@@ -33,19 +33,25 @@ class ClientSocket extends EventTarget {
 
     // reconnect on close
     this._socket.addEventListener('close', (e) => {
+      const copy = new CloseEvent('close', { code: e.code });
+      this.dispatchEvent(copy);
+
       this.connect(url, protocols);
     });
 
     // close on error
     this._socket.addEventListener('error', (e) => {
+      const copy = new ErrorEvent('error', { message: e.message });
+      this.dispatchEvent(copy);
+
       this._socket.close();
     });
 
     // message dispatch + session cookie
     this._socket.addEventListener('message', (e) => {
-      // holdover
-      const message = new MessageEvent('message', { data: e.data });
-      this.dispatchEvent(message);
+      // generic message event holdover
+      const copy = new MessageEvent('message', { data: e.data });
+      this.dispatchEvent(copy);
 
       // custom events
       const data = JSON.parse(e.data);
