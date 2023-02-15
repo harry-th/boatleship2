@@ -1,11 +1,11 @@
-import { useEffect } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { socket } from './server/client';
 
-const Games = ({ games, finished, current, open, socket, cookies }) => {
+
+const Games = ({ games, finished, current, open, cookies }) => {
     const [errorMessage, setErrorMessage] = useState(null)
     useEffect(() => {
         if (open) {
-            let sock = socket.current
             const messageListener = (event) => {
                 let message = JSON.parse(event.data)
                 if (message.issue === 'character type mismatch') {
@@ -13,12 +13,12 @@ const Games = ({ games, finished, current, open, socket, cookies }) => {
                     else if (message.charactertype === 'character') setErrorMessage('choose a character at play')
                 }
             }
-            socket.current.addEventListener('message', messageListener)
+            socket.addEventListener('message', messageListener)
             return () => {
-                sock.removeEventListener('message', messageListener)
+                socket.removeEventListener('message', messageListener)
             }
         }
-    }, [socket, open, cookies])
+    }, [open, cookies])
     return (
         <table>
             <tr>
@@ -37,7 +37,7 @@ const Games = ({ games, finished, current, open, socket, cookies }) => {
                             } else if (!user.boatNames) {
                                 return
                             }
-                            socket.current.send(JSON.stringify({
+                            socket.send(JSON.stringify({
                                 ...cookies.get('user'),
                                 matchcode: true,
                                 code: e.target[0].value

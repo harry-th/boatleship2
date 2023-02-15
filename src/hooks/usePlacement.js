@@ -4,7 +4,7 @@ const defaultRules = ({ positions, targets, orientation }) => {
     if (orientation === 'h' && (Math.floor(positions[positions.length - 1] / 10) * 10) - (Math.floor(positions[0] / 10) * 10) > 0) return true
     if (orientation === 'v' && positions[positions.length - 1] > 99) return true
 }
-const usePlacementLogic = ({ socket, orientation, cookies, boardState, setBoardState, boatrules, character,
+const usePlacementLogic = ({ orientation, cookies, boardState, setBoardState, boatrules, character,
     boatPlacements, setBoatPlacements,
     rules = ({ positions, targets, orientation }) => defaultRules({ positions, targets, orientation }),
     manipulatePos }

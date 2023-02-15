@@ -17,13 +17,16 @@ import useTimer from './hooks/timer';
 import postGame from './messagelisteners/postGame';
 import preGame from './messagelisteners/preGame';
 import Games from './components/Games';
+import { socket } from './server/client';
 
 
 const cookies = new Cookies()
 
+socket.connect('ws://localhost:8080/ws');
+
+
 function App() {
 
-  const socket = useRef(null);
   const [gameProgress, setGameProgress] = useState('preplacement')
   const [boardState, setBoardState] = useState(() => generateBoard(true, true))
   const [boatNames, setBoatNames] = useState(['destroyer', 'cruiser', 'battleship', 'carrier'])
@@ -43,29 +46,7 @@ function App() {
   const timer = useTimer()
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
-  // websocket connection
-  // TODO: figure out how to deal with dependencies in `onmessage` without creating a new websocket every time
-  // I think there are some issues with having these inside an effect callback
-  // https://overreacted.io/a-complete-guide-to-useeffect/
-  // socket connect/reconnect
-  useEffect(function connect() {
-    socket.current = new WebSocket('ws://localhost:8080/ws');
-    // attempt reconnect after 1s
-    socket.current.onclose = (e) => {
-      console.log('closed')
-      // console.log('Socket closed:', e.reason)
-      setTimeout(() => connect(), 1000)//attempted connections create more closes, these wait for the server to open it seems
-    }
-
-    // close on error
-    // socket.current.onerror = (e) => {
-    //   console.error('Socket error:', e.code || 'unknown');
-    //   socket.current.close()
-    // }
-    return () => {
-      socket.current.close()
-    }
-  }, [])
+  
 
   useEffect(() => {
     if (gameProgress !== 'placement' && gameProgress !== 'ongoing') {
@@ -104,9 +85,9 @@ function App() {
       preGame({ message, cookies, ss })
       postGame({ message, cookies, ss })
     }
-    socket.current.addEventListener('message', messageListener)
+    socket.addEventListener('message', messageListener)
     return () => {
-      socket.current.removeEventListener('message', messageListener)
+      socket.removeEventListener('message', messageListener)
     }
   }, [bluffing, setLastShots, setBluffing, setCharges, timer])
 
@@ -114,7 +95,6 @@ function App() {
 
   return (
     <div className={styles.app}>
-      {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
       <h1 className={styles.title}>WELCOME TO BATTLESHIP</h1>
 
       <div className={styles.boardcontainer}>
@@ -155,7 +135,7 @@ function App() {
             </div>
             }
             {display === 'open games' && <div className={styles.games}>
-              <Games games={games} socket={socket} cookies={cookies} open />
+              <Games games={games} cookies={cookies} open />
             </div>
             }
           </div>
@@ -167,14 +147,14 @@ function App() {
             </button>
             }
 
-            <Board player board={boardState} character={character} socket={socket.current}
+            <Board player board={boardState} character={character}
               boatNames={boatNames} setBoatNames={setBoatNames}
               cookies={cookies} setCookie={cookies.set}
               boardState={boardState} setBoardState={setBoardState}
               orientation={orientation} gameProgress={gameProgress} setGameProgress={setGameProgress}
               timer={timer}
             />
-            <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
+            <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState}
               cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
               boardState={boardState} turn={turn} setTurn={setTurn}
               enemyInfo={enemyInfo}
@@ -191,7 +171,6 @@ function App() {
               OrangeManUI={OrangeManUI}
               turn={turn}
               setTurn={setTurn}
-              socket={socket}
               enemyBoardState={enemyBoardState}
               cookies={cookies}
               setEnemyBoardState={setEnemyBoardState}
@@ -212,10 +191,9 @@ function App() {
                 setMessages([...messages])
               }}>games</button>
               <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
-                setBoatNames={setBoatNames} cookies={cookies}
-                socket={socket} />
+                setBoatNames={setBoatNames} cookies={cookies} />
             </> : cookies.get('user')?.state === 'aftergame' ?
-              <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
+              <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress}
                 enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
               : <div></div>
         }

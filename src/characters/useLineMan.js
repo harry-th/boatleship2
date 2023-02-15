@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { socket } from './server/client';
+
 
 const useLineMan = () => {
     const [lastShots, setLastShots] = useState([])
@@ -113,7 +115,7 @@ const useLineMan = () => {
             }
         }
     }
-    const LineManUI = ({ turn, enemyBoardState, setEnemyBoardState, socket, cookies, setTurn }) => {
+    const LineManUI = ({ turn, enemyBoardState, setEnemyBoardState, cookies, setTurn }) => {
         return (
             <div
 
@@ -123,7 +125,7 @@ const useLineMan = () => {
                 <button
                     onClick={() => {
                         if (turn && !selecting && charges) {
-                            socket.current.send(JSON.stringify({ shot: true, id: cookies.get('user').id, twoShot: true }))
+                            socket.send(JSON.stringify({ shot: true, id: cookies.get('user').id, twoShot: true }))
                             setTurn(false)
                         }
                     }}

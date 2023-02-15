@@ -1,32 +1,33 @@
 import styles from '../styles/Dashboard.module.css'
 import Callbluffbutton from './Callbluffbutton'
 import Log from './Log'
+
+
 const Dashboard = ({
-    messages
-    , gameProgress
-    , turnNumber
-    , enemyTurnNumber
-    , character
-    , OrangeManUI
-    , turn
-    , setTurn
-    , socket
-    , enemyBoardState
-    , enemyTargets
-    , cookies
-    , setEnemyBoardState
-    , LineManUI
-    , wasBluffing
-    , enemyBoatPlacements
-    , setEnemyBoatPlacements
-    , setTurnNumber
-    , boardState
-    , freeShotMiss
-    , setFreeShotMiss
-    , enemyFreeShotMiss
-    , setEnemyFreeShotMiss
-    , setColors
-    , enemyInfo }) => {
+    messages,
+    gameProgress,
+    turnNumber,
+    enemyTurnNumber,
+    character,
+    OrangeManUI,
+    turn,
+    setTurn,
+    enemyBoardState,
+    enemyTargets,
+    cookies,
+    setEnemyBoardState,
+    LineManUI,
+    wasBluffing,
+    enemyBoatPlacements,
+    setEnemyBoatPlacements,
+    setTurnNumber,
+    boardState,
+    freeShotMiss,
+    setFreeShotMiss,
+    enemyFreeShotMiss,
+    setEnemyFreeShotMiss,
+    setColors,
+    enemyInfo }) => {
     return (
         <div className={styles.dashboard}>
             <div className={styles.logcontainer}>
@@ -44,14 +45,14 @@ const Dashboard = ({
                     </div>
                 </div>
                 <div className={styles.charcontainer}>
-                    {character === 'orangeman' && <OrangeManUI turn={turn} setTurn={setTurn} socket={socket}
+                    {character === 'orangeman' && <OrangeManUI turn={turn} setTurn={setTurn}
                         enemyBoardState={enemyBoardState} enemyTargets={enemyTargets} cookies={cookies}
                         setEnemyBoardState={setEnemyBoardState} />
                     }
-                    {character === 'lineman' && <LineManUI turn={turn} enemyBoardState={enemyBoardState} setEnemyBoardState={setEnemyBoardState} socket={socket} cookies={cookies} setTurn={setTurn} setColors={setColors} />
+                    {character === 'lineman' && <LineManUI turn={turn} enemyBoardState={enemyBoardState} setEnemyBoardState={setEnemyBoardState} cookies={cookies} setTurn={setTurn} setColors={setColors} />
                     }
                     {enemyInfo.character === 'orangeman' && <Callbluffbutton setTurn={setTurn}
-                        wasBluffing={wasBluffing} boardState={boardState} cookies={cookies} socket={socket} setFreeShotMiss={setFreeShotMiss} />}
+                        wasBluffing={wasBluffing} boardState={boardState} cookies={cookies} setFreeShotMiss={setFreeShotMiss} />}
                 </div>
             </div>
         </div >

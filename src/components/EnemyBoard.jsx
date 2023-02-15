@@ -1,15 +1,16 @@
 import React from 'react'
 import styles from '../styles/Board.module.css'
+import { socket } from './server/client';
 
 
-const Board = ({ socket, cookies, enemyBoardState,
+const Board = ({ cookies, enemyBoardState,
     gameProgress, turn, setTurn, character, boardState, setEnemyBoardState, setBoardState,
     shootLine, enemyInfo, bluffing, timer }) => {
 
     const handleClick = (index, modifier) => {
         if (turn && enemyInfo?.status !== 'disconnected') {
             index = !Array.isArray(index) ? [index] : index
-            socket.current.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
+            socket.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
             setTurn(false)
         }
     }
@@ -32,7 +33,6 @@ const Board = ({ socket, cookies, enemyBoardState,
                                 , setBoardState
                                 , enemyBoardState
                                 , setEnemyBoardState
-                                , socket
                                 , cookies
                                 , handleClick
                             })

@@ -1,6 +1,6 @@
 import usePlacementLogic from "../hooks/usePlacement"
 
-let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules, boatPlacements, setBoatPlacements }) => {
+let useCornerMan = ({ cookies, orientation, boardState, setBoardState, boatNames, boatrules, boatPlacements, setBoatPlacements }) => {
     const rules = ({ positions, targets }) => {
         if (positions.some((pos) => targets.includes(pos))) return true
     }
@@ -12,7 +12,7 @@ let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, b
         return positions
     }
     // needs to figure out how to maniulate positions in placement in a modular manner
-    const cornerPlacement = usePlacementLogic({ socket, orientation, cookies, boardState, character: 'cornerman', setBoardState, boatrules, boatPlacements, setBoatPlacements, rules, manipulatePos })
+    const cornerPlacement = usePlacementLogic({ orientation, cookies, boardState, character: 'cornerman', setBoardState, boatrules, boatPlacements, setBoatPlacements, rules, manipulatePos })
 
 
     const cornerHover = ({ index, gameProgress, boardState, boatLength, orientation, hoverState, setHoverState, }) => {

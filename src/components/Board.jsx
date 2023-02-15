@@ -7,7 +7,8 @@ import useBoatrules from '../hooks/boatrules'
 import usePlacementLogic from '../hooks/usePlacement'
 import useCornerMan from '../characters/useCornerMan'
 
-const Board = ({ player, socket, cookies, boardState, setBoardState,
+
+const Board = ({ player, cookies, boardState, setBoardState,
   orientation, gameProgress, turn, setTurn, boatNames, character, timer }) => {
 
 
@@ -16,9 +17,9 @@ const Board = ({ player, socket, cookies, boardState, setBoardState,
   const boatrules = useBoatrules({ names: boatNames, setBoatPlacements, setBoardState })
 
 
-  const placement = usePlacementLogic({ socket, orientation, cookies, character, boardState, boatrules, setBoardState, boatPlacements, setBoatPlacements })
+  const placement = usePlacementLogic({ orientation, cookies, character, boardState, boatrules, setBoardState, boatPlacements, setBoatPlacements })
 
-  const { cornerPlacement, cornerHover } = useCornerMan({ socket, cookies, orientation, boardState, setBoardState, boatNames, boatrules, boatPlacements, setBoatPlacements })
+  const { cornerPlacement, cornerHover } = useCornerMan({ cookies, orientation, boardState, setBoardState, boatNames, boatrules, boatPlacements, setBoatPlacements })
 
   const handleClick = (index) => {
     if (gameProgress === 'placement') {

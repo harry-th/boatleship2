@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import styles from '../styles/Customization.module.css'
+import { socket } from './server/client';
 
-const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies, socket }) => {
+
+const Customization = ({ character, setCharacter, boatNames, setBoatNames, cookies }) => {
     const [name, setName] = useState(null)
     const [display, setDisplay] = useState(!character ? 'character' : cookies.get('user').name ? 'done' : 'name')
     const [privacy, setPrivacy] = useState(false)
@@ -114,7 +116,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         }
                         periods()
                         setWaiting('waiting for match')
-                        socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames, privacy }))
+                        socket.send(JSON.stringify({ ...cookies.get('user'), character, boatNames, privacy }))
                     }}>find game</button>
                     private?: <input type="checkbox" onChange={() => {
                         console.log(privacy)

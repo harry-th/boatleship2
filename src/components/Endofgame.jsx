@@ -1,5 +1,8 @@
 import styles from '../styles/Endofgame.module.css'
-const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, chat, setChat }) => {
+import { socket } from '../server/client'
+
+
+const Endofgame = ({ gameProgress, cookies, setGameProgress, enemyInfo, chat, setChat }) => {
     return (<>
         <div>
             <header>
@@ -8,7 +11,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, 
             </header>
             {enemyInfo?.lookingForRematch !== 'left' && <button onClick={() => {
                 cookies.set('user', { ...cookies.get('user') })
-                socket.current.send(JSON.stringify({ id: cookies.get('user').id, rematch: true }))
+                socket.send(JSON.stringify({ id: cookies.get('user').id, rematch: true }))
             }}
             >rematch?</button>}
             {enemyInfo?.lookingForRematch === 'looking' && <p>your last opponent {enemyInfo.name} is looking for a rematch!</p>}
@@ -20,7 +23,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, 
                 </div>
                 {enemyInfo?.lookingForRematch !== 'left' && <form onSubmit={(e) => {
                     e.preventDefault()
-                    socket.current.send(JSON.stringify({ id: cookies.get('user').id, chat: `${cookies.get('user').name}: ${e.target.chat.value}` }))
+                    socket.send(JSON.stringify({ id: cookies.get('user').id, chat: `${cookies.get('user').name}: ${e.target.chat.value}` }))
                 }}>
                     <input name='chat' />
                 </form>}
@@ -29,7 +32,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, 
                 cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
                 setChat([])
                 setGameProgress('preplacement')
-                socket.current.send(JSON.stringify({ id: cookies.get('user').id, newgame: true }))
+                socket.send(JSON.stringify({ id: cookies.get('user').id, newgame: true }))
             }}>Back for more?</button></p>
         </div>
     </>)
