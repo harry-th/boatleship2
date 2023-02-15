@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { socket } from '../server/client';
+import { client } from '../server/client';
 
 let useOrangeMan = () => {
     const [bluffing, setBluffing] = useState(sessionStorage.getItem('bluffing') ? JSON.parse(sessionStorage.getItem('bluffing')) : false)
@@ -22,7 +22,7 @@ let useOrangeMan = () => {
                         if (bluffing === 'ready') {
                             setTurn(false)
                             setBluffing(null)
-                            socket.send(JSON.stringify({ id: cookies.get('user').id, shot: true, retaliation: true, }))
+                            client.send(JSON.stringify({ id: cookies.get('user').id, shot: true, retaliation: true, }))
                         }
                     }
                 }}>{bluffing === 'ready' ? 'fire Retaliation' :

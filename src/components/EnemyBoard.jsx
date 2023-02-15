@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from '../styles/Board.module.css'
-import { socket } from '../server/client';
+import { client } from '../server/client';
 
 
 const Board = ({ cookies, enemyBoardState,
@@ -10,7 +10,7 @@ const Board = ({ cookies, enemyBoardState,
     const handleClick = (index, modifier) => {
         if (turn && enemyInfo?.status !== 'disconnected') {
             index = !Array.isArray(index) ? [index] : index
-            socket.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
+            client.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
             setTurn(false)
         }
     }

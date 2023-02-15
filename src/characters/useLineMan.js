@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { socket } from '../server/client';
+import { client } from '../server/client';
 
 
 const useLineMan = () => {
@@ -125,7 +125,7 @@ const useLineMan = () => {
                 <button
                     onClick={() => {
                         if (turn && !selecting && charges) {
-                            socket.send(JSON.stringify({ shot: true, id: cookies.get('user').id, twoShot: true }))
+                            client.send(JSON.stringify({ shot: true, id: cookies.get('user').id, twoShot: true }))
                             setTurn(false)
                         }
                     }}

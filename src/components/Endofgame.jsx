@@ -1,5 +1,5 @@
 import styles from '../styles/Endofgame.module.css'
-import { socket } from '../server/client'
+import { client } from '../server/client'
 
 
 const Endofgame = ({ gameProgress, cookies, setGameProgress, enemyInfo, chat, setChat }) => {
@@ -11,7 +11,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, enemyInfo, chat, se
             </header>
             {enemyInfo?.lookingForRematch !== 'left' && <button onClick={() => {
                 cookies.set('user', { ...cookies.get('user') })
-                socket.send(JSON.stringify({ id: cookies.get('user').id, rematch: true }))
+                client.send(JSON.stringify({ id: cookies.get('user').id, rematch: true }))
             }}
             >rematch?</button>}
             {enemyInfo?.lookingForRematch === 'looking' && <p>your last opponent {enemyInfo.name} is looking for a rematch!</p>}
@@ -23,7 +23,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, enemyInfo, chat, se
                 </div>
                 {enemyInfo?.lookingForRematch !== 'left' && <form onSubmit={(e) => {
                     e.preventDefault()
-                    socket.send(JSON.stringify({ id: cookies.get('user').id, chat: `${cookies.get('user').name}: ${e.target.chat.value}` }))
+                    client.send(JSON.stringify({ id: cookies.get('user').id, chat: `${cookies.get('user').name}: ${e.target.chat.value}` }))
                 }}>
                     <input name='chat' />
                 </form>}
@@ -32,7 +32,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, enemyInfo, chat, se
                 cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
                 setChat([])
                 setGameProgress('preplacement')
-                socket.send(JSON.stringify({ id: cookies.get('user').id, newgame: true }))
+                client.send(JSON.stringify({ id: cookies.get('user').id, newgame: true }))
             }}>Back for more?</button></p>
         </div>
     </>)

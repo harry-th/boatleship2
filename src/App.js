@@ -17,12 +17,12 @@ import useTimer from './hooks/timer';
 import postGame from './messagelisteners/postGame';
 import preGame from './messagelisteners/preGame';
 import Games from './components/Games';
-import { socket } from './server/client';
+import { client } from './server/client';
 
 
-const cookies = new Cookies()
+const cookies = new Cookies()  // TODO: remove, socket now handles cookies
 
-socket.connect('ws://localhost:8080/ws');
+client.connect('ws://localhost:8080/ws');
 
 
 function App() {
@@ -85,9 +85,9 @@ function App() {
       preGame({ message, cookies, ss })
       postGame({ message, cookies, ss })
     }
-    socket.addEventListener('message', messageListener)
+    client.addEventListener('message', messageListener)
     return () => {
-      socket.removeEventListener('message', messageListener)
+      client.removeEventListener('message', messageListener)
     }
   }, [bluffing, setLastShots, setBluffing, setCharges, timer])
 

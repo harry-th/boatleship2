@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { socket } from '../server/client'
+import { client } from '../server/client'
 
 const defaultRules = ({ positions, targets, orientation }) => {
     if (positions.some((pos) => targets.includes(pos))) return true
@@ -61,7 +61,7 @@ const usePlacementLogic = ({ orientation, cookies, boardState, setBoardState, bo
                 if (allPositions.includes(Number(p))) newBoardState[p].state = 'mine'
                 else newBoardState[p].state = null
             }
-            socket.send(JSON.stringify({
+            client.send(JSON.stringify({
                 character,
                 boatdata: true, id: cookies.get('user').id,
                 boatPlacements: placements,

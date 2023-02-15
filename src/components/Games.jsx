@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { socket } from '../server/client';
+import { client } from '../server/client';
 
 
 const Games = ({ games, finished, current, open, cookies }) => {
@@ -13,9 +13,9 @@ const Games = ({ games, finished, current, open, cookies }) => {
                     else if (message.charactertype === 'character') setErrorMessage('choose a character at play')
                 }
             }
-            socket.addEventListener('message', messageListener)
+            client.addEventListener('message', messageListener)
             return () => {
-                socket.removeEventListener('message', messageListener)
+                client.removeEventListener('message', messageListener)
             }
         }
     }, [open, cookies])
@@ -37,7 +37,7 @@ const Games = ({ games, finished, current, open, cookies }) => {
                             } else if (!user.boatNames) {
                                 return
                             }
-                            socket.send(JSON.stringify({
+                            client.send(JSON.stringify({
                                 ...cookies.get('user'),
                                 matchcode: true,
                                 code: e.target[0].value
