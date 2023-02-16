@@ -27,8 +27,8 @@
   border: 2px solid black;
 }
 .app .pagecontent .boardmockmenu {
-  width: 720px;
-  height: 720px;
+  width: 660px;
+  height: 660px;
   display: flex;
   flex-wrap: wrap;
 }
@@ -36,9 +36,9 @@
   cursor: pointer;
   color: blue;
   background-color: blue;
-  width: 240px;
-  height: 210px;
-  padding-top: 30px;
+  width: 220px;
+  height: 220px;
+  vertical-align: top;
 }
 .app .pagecontent .boardmockmenu div:hover {
   color: white;

@@ -142,6 +142,8 @@ wss.on('connection', (ws, req) => {
         if (userData[id]?.boardState) boardState = { boardState: userData[id].boardState }
         console.log(userData[id].timer)
         ws.send(JSON.stringify({ for: 'player', timer: 1, time: Math.floor((userData[id]?.timer?.remaining) / 1000), messagetype: 'reconnect', info: { enemyInfo, ...userInfo[id], }, ...boardState }))
+    } else if (games[userInfo[id].currentGame]?.state === 'finished') {
+        ws.send(JSON.stringify({ issue: 'disconnect' }))
     }
 
     // update user socket
@@ -169,9 +171,9 @@ wss.on('connection', (ws, req) => {
                         state: 'finished', winnerId: id, loserId: groups[id],
                         winner: userInfo[id].name, loser: userInfo[groups[id]].name,
                         winnerCharacter: userInfo[id].character, loserCharacter: userInfo[groups[id]].character,
-                        disonnected: 'timed out'
+                        disconnected: true, disconnectreason: 'disconnected from server'
                     }
-                    wscodes[groups[id]].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true }))
+                    wscodes[groups[id]].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true, hasLeft: true }))
                     delete userData[groups[id]]
                     delete userData[id]
                 }, 60000)
@@ -223,7 +225,7 @@ wss.on('connection', (ws, req) => {
             }
             if (message.shot) {
                 if (playerdata?.turn) {
-                    let { index, cornershot } = message
+                    let { index } = message
                     if (playerinfo.character === 'lineman') {
                         if ((message.twoShot || message.shootline) && playerdata.charges < 1) return // this and the line below prevent illegal behavior
                         else if (message.shootline && (index[1] - index[0] !== 1 && index[1] - index[0] !== 10)) return
@@ -283,11 +285,11 @@ wss.on('connection', (ws, req) => {
                         }
                     }
                     //sink logic + extra conditions and output for character
-                    if (cornershot && playerinfo.character === 'cornerman') {
+                    if (playerinfo.character === 'cornerman') {
                         let { shipsSunk, hits } = cornerSinkCheck({ enemydata })
                         if (hits) shotresults = { ...shotresults, hit: [...hits] } // this adds the additional shots which are added when cornershot hits the head and rear of a boat
-                        enemyModifier = { ...enemyModifier, shipsSunk, cornershot }
-                        playerModifier = { ...playerModifier, shipsSunk, cornershot }
+                        enemyModifier = { ...enemyModifier, shipsSunk, cornershot: true }
+                        playerModifier = { ...playerModifier, shipsSunk, cornershot: true }
                     } else {
                         let { shipsSunk } = normalSinkCheck({ enemydata })
                         enemyModifier = { ...enemyModifier, shipsSunk, }

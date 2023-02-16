@@ -4,7 +4,7 @@ const fromYou = ({ message, ss }) => {
         const { info, data } = message
         ss.timer.stop()
         if (!data) {
-            ss.timer.setStart(message.timer, message.time) //bug time
+            ss.timer.setStart(message.timer, message.time)
             console.log('placement disconnect')
             if (message.boardState) ss.setBoardState(message.boardState)
             ss.setEnemyInfo(info.enemyInfo)
@@ -12,7 +12,7 @@ const fromYou = ({ message, ss }) => {
             ss.setGameProgress('placement')
             return
         }
-        if (message?.data?.timer) ss.timer.setStart(message.data.timer, message.time) //bug time
+        if (message?.data?.timer) ss.timer.setStart(message.data.timer, message.time)
         ss.setCharacter(info.character)
         ss.setBoardState(data.boardState)
         ss.setEnemyBoardState(data.enemyBoardState)

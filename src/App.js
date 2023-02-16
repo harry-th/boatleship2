@@ -138,7 +138,6 @@ function App() {
                 } else if (index === 4) {
                   return <div onClick={() => {
                     cookies.set('user', { ...cookies.get('user'), state: 'matching' })
-                    console.log(cookies.get('user'))
                     setMessages([...messages])
                   }}><p>Play</p></div>
                 } else

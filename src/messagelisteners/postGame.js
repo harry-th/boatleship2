@@ -1,4 +1,7 @@
 const postGame = ({ message, cookies, ss }) => {
+    if (message.issue === 'disconnect') {
+        cookies.set('user', { name: cookies.get('user').name })
+    }
     if (message.chat) {
         ss.setChat(prev => [message.chat, ...prev])
     }
