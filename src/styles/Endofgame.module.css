@@ -16,7 +16,6 @@
 .endgamechatbox input {
   text-decoration: none;
   width: 99%;
-  height: -webkit-fit-content;
   height: -moz-fit-content;
   height: fit-content;
   font-weight: 1000;

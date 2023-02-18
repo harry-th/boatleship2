@@ -111,55 +111,56 @@ function App() {
   }, [bluffing, setLastShots, setBluffing, setCharges, timer])
 
 
-
+  console.log(character)
   return (
     <div className={styles.app}>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
       <h1 className={styles.title}>WELCOME TO BATTLESHIP</h1>
 
-      <div className={styles.boardcontainer}>
 
-        {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
-          <div className={styles.pagecontent}>
-            {display === 'home' &&
-              <div className={styles.boardmockmenu}>{[...Array(9)].map((i, index) => {
-                if (index === 0) {
-                  return <div onClick={() => {
-                    setDisplay('current games')
-                  }}><p>current games</p></div>
-                } else if (index === 2) {
-                  return <div onClick={() => {
-                    setDisplay('finished games')
-                  }}><p>finished games</p></div>
-                } else if (index === 3) {
-                  return <div onClick={() => {
-                    setDisplay('open games')
-                  }}><p>open games</p></div>
-                } else if (index === 4) {
-                  return <div onClick={() => {
-                    cookies.set('user', { ...cookies.get('user'), state: 'matching' })
-                    setMessages([...messages])
-                  }}><p>Play</p></div>
-                } else
-                  return <div></div>
-              })}
-              </div>
-            }
-            {display === 'current games' && <div className={styles.games}>
-              <Games games={games} current />
+      {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
+        <div className={styles.pagecontent}>
+          {display === 'home' &&
+            <div className={styles.boardmockmenu}>{[...Array(9)].map((i, index) => {
+              if (index === 0) {
+                return <div onClick={() => {
+                  setDisplay('current games')
+                }}><p>current games</p></div>
+              } else if (index === 2) {
+                return <div onClick={() => {
+                  setDisplay('finished games')
+                }}><p>finished games</p></div>
+              } else if (index === 3) {
+                return <div onClick={() => {
+                  setDisplay('open games')
+                }}><p>open games</p></div>
+              } else if (index === 4) {
+                return <div onClick={() => {
+                  cookies.set('user', { ...cookies.get('user'), state: 'matching' })
+                  setMessages([...messages])
+                }}><p>Play</p></div>
+              } else
+                return <div></div>
+            })}
             </div>
-            }
-            {display === 'finished games' && <div className={styles.games}>
-              <Games games={games} finished />
-            </div>
-            }
-            {display === 'open games' && <div className={styles.games}>
-              <Games games={games} socket={socket} cookies={cookies} open />
-            </div>
-            }
+          }
+          {display === 'current games' && <div className={styles.games}>
+            <Games games={games} current />
           </div>
-          // </div>
-          : (gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
+          }
+          {display === 'finished games' && <div className={styles.games}>
+            <Games games={games} finished />
+          </div>
+          }
+          {display === 'open games' && <div className={styles.games}>
+            <Games games={games} socket={socket} cookies={cookies} open />
+          </div>
+          }
+        </div>
+        // </div>
+        : (gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
+          <div className={styles.boardcontainer}>
+
             {gameProgress === 'placement' && <button
               onClick={() => { orientation === 'v' ? setOrientation('h') : setOrientation('v') }}>
               change boat orientation
@@ -203,22 +204,22 @@ function App() {
               setEnemyFreeShotMiss={setEnemyFreeShotMiss}
               enemyInfo={enemyInfo}
             />
-          </> : cookies.get('user')?.state === 'matching' ?
-            <>
-              <button onClick={() => {
-                cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
-                console.log(cookies.get('user'))
-                setMessages([...messages])
-              }}>games</button>
-              <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
-                setBoatNames={setBoatNames} cookies={cookies}
-                socket={socket} />
-            </> : cookies.get('user')?.state === 'aftergame' ?
-              <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
-                enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
-              : <div></div>
-        }
-      </div>
+          </div>
+        </> : cookies.get('user')?.state === 'matching' ?
+          <>
+            <button onClick={() => {
+              cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+              console.log(cookies.get('user'))
+              setMessages([...messages])
+            }}>games</button>
+            <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
+              setBoatNames={setBoatNames} cookies={cookies}
+              socket={socket} />
+          </> : cookies.get('user')?.state === 'aftergame' ?
+            <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
+              enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
+            : <div></div>
+      }
     </div>
   )
 }

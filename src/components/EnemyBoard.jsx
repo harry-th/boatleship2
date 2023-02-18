@@ -55,10 +55,8 @@ const Board = ({ socket, cookies, enemyBoardState,
     }
 
     return (
-        <div>
-            <button
-                onClick={() => console.log(boardState)}
-            >message</button>
+        <div className={styles.boardbox}>
+
             <p>{enemyInfo?.name} {enemyInfo?.status === 'disconnected' && <span>has disconnected!</span>} {timer.timer2}</p>
             <div className={styles.board}>
                 {[...Array(100)].map((e, i) => <>{element(i)}</>)}

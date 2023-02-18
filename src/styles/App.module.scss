@@ -13,6 +13,8 @@
   .boardcontainer {
     display: flex;
     justify-content: space-evenly;
+    align-items: center;
+    height: 70vh;
   }
   .pagecontent {
     height: 90vh;
@@ -30,15 +32,17 @@
       display: flex;
       flex-wrap: wrap;
       div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         cursor: pointer;
-        color: blue;
+        color: rgb(0, 0, 255);
         background-color: blue;
         width: 220px;
         height: 220px;
-        vertical-align: top;
         &:hover {
           color: white;
-          background-color: rgb(78, 78, 188);
+          background-color: rgb(14, 14, 139);
         }
         p {
           font-size: 50px;

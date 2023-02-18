@@ -384,7 +384,8 @@ wss.on('connection', (ws, req) => {
                         turn: userData[id].turn,
                         ...charges,
                         ...bluffing,
-                        time: 20
+                        time: 20,
+                        character: userInfo[id].character
                     }))
                     wscodes[groups[id]].send(JSON.stringify({
                         turnNumber: 2,
@@ -393,7 +394,8 @@ wss.on('connection', (ws, req) => {
                         turn: userData[groups[id]].turn,
                         ...charges,
                         ...bluffing,
-                        time: 20
+                        time: 20,
+                        character: userInfo[groups[id]].character
                     }))
                 } else {
                     ws.send(JSON.stringify({ boatssent: true }))

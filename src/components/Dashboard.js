@@ -17,14 +17,10 @@ const Dashboard = ({
     , setEnemyBoardState
     , LineManUI
     , wasBluffing
-    , enemyBoatPlacements
-    , setEnemyBoatPlacements
-    , setTurnNumber
     , boardState
     , freeShotMiss
     , setFreeShotMiss
     , enemyFreeShotMiss
-    , setEnemyFreeShotMiss
     , setColors
     , enemyInfo }) => {
     return (

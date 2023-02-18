@@ -22,7 +22,7 @@ const fromYou = ({ message, ss }) => {
         ss.setEnemyInfo(info.enemyInfo)
         if (info.character === 'lineman') {
             ss.setCharges(data.charges)
-            ss.setLastShots(message.twoShots)
+            ss.setLastShots(message.data.twoShots)
         }
         if (info.character === 'orangeman') {
             ss.setBluffing(data.bluffing)

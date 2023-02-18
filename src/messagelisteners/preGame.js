@@ -30,6 +30,7 @@ const preGame = ({ message, cookies, ss }) => {
                 return [...prev, 'You will go second, freeshot 1 turn earlier...']
             })
         }
+        ss.setCharacter(message.character)
         ss.setGameProgress('ongoing')
         ss.setTurn(message.turn)
     }
