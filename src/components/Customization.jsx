@@ -20,7 +20,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
         setBoatNames(newBoatNames)
         setDisplay('done')
     }
-
+    console.log(cookies.get('user'))
     return (
         <div className={styles.customization}>
             {(!character) && <div className={styles.characterselect}>
@@ -33,7 +33,7 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         <li>Your shots protect the equivalent square on your board</li>
                         <li>Can bluff: when bluffing you can't see the results
                             of your shots, if the enemy doesn't call your bluff you
-                            can return 3 shots for each turn since you started bluffing.</li>
+                            can return 3 shots for each shot since you started bluffing.</li>
                     </ul>
                 </div>
                 <div onClick={() => {
@@ -68,13 +68,15 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                     </ul>
                 </div>
             </div>}
-            <div onClick={() => {
-                setName(null)
-                setDisplay('name')
-            }}> {name || (!cookies.get('user') ? cookies.get('user').name : null)}
+            <div className={styles.name} onClick={() => {
+                if (!cookies.get('user').name) {
+                    setName(null)
+                    setDisplay('name')
+                }
+            }}> {name || cookies.get('user').name ? cookies.get('user').name : null}
                 {cookies.get('user').name && <span> wins/losses: {cookies.get('user').wins} / {cookies.get('user').losses}</span>}
             </div>
-            <div className={styles.boatform}>
+            {(display === 'name' || display === 'boats') && <div className={styles.boatform}>
                 {(name && display === 'name') && <p className={styles.chooseBoatNames}>choose Boat names?</p>}
                 <form onSubmit={(e) => {
                     setInformation(e)
@@ -99,36 +101,40 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
                         <input name='boat4' defaultValue={boatNames[3]} />
                         <button>submit</button> </div>}
                 </form>
-            </div>
+            </div>}
             {(cookies.get('user').name && character) && <div>
-                {display === 'done' && <div>
-                    <button onClick={() => {
-                        let periods = () => {
-                            setTimeout(() => {
-                                setWaiting(prev => {
-                                    if (prev.match(/\.\.\./)) return 'waiting for match'
-                                    return prev + '.'
-                                })
-                                if (cookies.get('user').state === 'matching') periods()
-                            }, 1000)
-                        }
-                        periods()
-                        setWaiting('waiting for match')
-                        socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames, privacy }))
-                    }}>find game</button>
-                    private?: <input type="checkbox" onChange={() => {
-                        console.log(privacy)
-                        setPrivacy(prev => !prev)
-                    }} />
-
-                    <button onClick={() => {
-                        setDisplay('boats')
-                    }}>rename boats
-                    </button>
-                    <button onClick={() => {
-                        setCharacter(false)
-                    }}>change character
-                    </button>
+                {display === 'done' && <div className={styles.gamefindmenu}>
+                    <div>
+                        <button onClick={() => {
+                            let periods = () => {
+                                setTimeout(() => {
+                                    setWaiting(prev => {
+                                        if (prev.match(/\.\.\./)) return 'waiting for match'
+                                        return prev + '.'
+                                    })
+                                    if (cookies.get('user').state === 'matching') periods()
+                                }, 1000)
+                            }
+                            periods()
+                            setWaiting('waiting for match')
+                            socket.current.send(JSON.stringify({ ...cookies.get('user'), character, boatNames, privacy }))
+                        }}>find game</button>
+                        private?: <input type="checkbox" onChange={() => {
+                            setPrivacy(prev => !prev)
+                        }} />
+                    </div>
+                    <div>
+                        <button onClick={() => {
+                            setDisplay('boats')
+                        }}>rename boats
+                        </button>
+                    </div>
+                    <div>
+                        <button onClick={() => {
+                            setCharacter(false)
+                        }}>change character
+                        </button>
+                    </div>
                     {waiting && <p>{waiting}</p>}
                 </div>}</div>}
         </div>)

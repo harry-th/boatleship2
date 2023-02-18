@@ -2,23 +2,41 @@
   height: 100vh;
   width: 100vw;
   text-align: center;
+  background-color: rgb(212, 185, 149);
+}
+.app footer {
+  background-color: rgb(8, 8, 44);
+  border-top: 4px solid rgb(78, 41, 10);
+}
+.app button {
+  cursor: pointer;
+  color: rgb(100, 72, 21);
+  background-color: white;
+  font-size: 16px;
+  border-radius: 8px;
+}
+.app button:hover {
+  background-color: rgb(221, 180, 104);
 }
 .app .title {
   color: white;
-  background-color: blue;
+  background-color: rgb(18, 18, 214);
+  border-bottom: 4px solid rgb(78, 41, 10);
   margin-top: 0px;
   padding-top: 20px;
   height: 80px;
   margin-bottom: 30px;
 }
 .app .boardcontainer {
+  padding: 10px;
+  background-image: linear-gradient(rgb(190, 166, 120), rgb(146, 116, 56));
   display: flex;
   justify-content: space-evenly;
-  align-items: center;
-  height: 70vh;
+  align-items: flex-start;
+  height: 81vh;
 }
 .app .pagecontent {
-  height: 90vh;
+  height: 85vh;
   width: 100vw;
   display: flex;
   justify-content: space-evenly;
@@ -29,24 +47,27 @@
   border: 2px solid black;
 }
 .app .pagecontent .boardmockmenu {
-  width: 660px;
-  height: 660px;
+  width: 525px;
+  height: 525px;
   display: flex;
   flex-wrap: wrap;
+  border: 5px solid black;
+  border-radius: 8px;
 }
 .app .pagecontent .boardmockmenu div {
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  color: rgb(0, 0, 255);
-  background-color: blue;
-  width: 220px;
-  height: 220px;
+  color: rgb(18, 18, 214);
+  background-color: rgb(18, 18, 214);
+  border: thin solid rgb(22, 26, 224);
+  width: 32.955%;
+  height: 32.955%;
 }
 .app .pagecontent .boardmockmenu div:hover {
   color: white;
-  background-color: rgb(14, 14, 139);
+  background-color: rgb(13, 13, 233);
 }
 .app .pagecontent .boardmockmenu div p {
   font-size: 50px;

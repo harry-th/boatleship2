@@ -4,6 +4,23 @@
   justify-content: center;
   align-items: center;
 }
+.customization .name {
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.customization .gamefindmenu {
+  display: flex;
+  flex-direction: column;
+}
+.customization .gamefindmenu div {
+  width: 200px;
+  margin-top: 15px;
+}
+.customization .gamefindmenu div button {
+  width: 200px;
+}
 .customization .characterselect {
   width: 700px;
   display: flex;
@@ -18,12 +35,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: blue;
+  background-color: rgb(18, 18, 214);
+  color: orange;
   margin: 10px;
   cursor: pointer;
 }
 .customization .characterselect div:hover {
-  background-color: red;
+  background-color: rgb(218, 67, 67);
 }
 .customization .characterselect div ul {
   margin: 10px;
@@ -36,22 +54,36 @@
   font-size: 10px;
   margin: 2px;
 }
+.customization .boatform {
+  margin: 15px;
+  padding: 20px;
+  border: 2px solid black;
+}
+.customization .boatform input {
+  font-size: 14px;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
 .customization .boatform .chooseBoatNames {
-  background-color: lightblue;
-  color: red;
+  background-color: rgb(72, 72, 235);
+  border: 4px solid rgb(12, 12, 212);
+  border-radius: 4px;
+  color: orange;
   padding: 10px;
   cursor: pointer;
-  transition: color 1s, background-color 1s;
-}
-.customization .boatform .chooseBoatNames:hover {
-  color: lightblue;
-  background-color: red;
 }
 .customization .boatform form {
   display: flex;
   flex-direction: column;
 }
+.customization .boatform form label {
+  font-weight: 500;
+}
 .customization .boatform .boatfields {
   display: flex;
   flex-direction: column;
+}
+.customization .boatform .boatfields h4 {
+  margin: 10px;
 }/*# sourceMappingURL=Customization.module.css.map */

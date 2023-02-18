@@ -13,7 +13,6 @@ const useBoatrules = ({ names, setBoatPlacements }) => {
                 //your boardstate will not match the server, though this can be rectified by refeshing 
                 if (boatsPlaced !== numberOfBoats) {
                     setBoatPlacements(prev => {
-                        console.log(Array.isArray(prev))
                         if (Array.isArray(prev)) return prev
                         delete prev[boatNames[boatsPlaced - 1]]
                         return { ...prev }

@@ -1,11 +1,9 @@
 const fromYou = ({ message, ss }) => {
-    console.log({ you: message })
     if (message.messagetype === 'reconnect') {
         const { info, data } = message
         ss.timer.stop()
         if (!data) {
             ss.timer.setStart(message.timer, message.time)
-            console.log('placement disconnect')
             if (message.boardState) ss.setBoardState(message.boardState)
             ss.setEnemyInfo(info.enemyInfo)
             ss.setCharacter(info.character)
@@ -32,7 +30,6 @@ const fromYou = ({ message, ss }) => {
 
 
 
-
     ss.setTurnNumber(message.turnNumber)
     if (message.freeshotmiss >= 0) ss.setFreeShotMiss(message.freeshotmiss)
     if (message.freeshot) ss.setTurn(true)
@@ -42,7 +39,9 @@ const fromYou = ({ message, ss }) => {
     }
     if (message.bluffing) ss.setBluffing(message.bluffing)
     if (message.charges || message.charges === 0) ss.setCharges(message.charges)
+    if (message.callbluff) ss.setTurn(false)
     if (message.shotresults) {
+        ss.setTurn(false)
         let { shotresults } = message
         if (shotresults.hit || shotresults.missed) {
             ss.setMessages(prev => {

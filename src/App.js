@@ -111,7 +111,6 @@ function App() {
   }, [bluffing, setLastShots, setBluffing, setCharges, timer])
 
 
-  console.log(character)
   return (
     <div className={styles.app}>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
@@ -145,28 +144,26 @@ function App() {
             </div>
           }
           {display === 'current games' && <div className={styles.games}>
-            <Games games={games} current />
+            <Games games={games} setDisplay={setDisplay} current />
           </div>
           }
           {display === 'finished games' && <div className={styles.games}>
-            <Games games={games} finished />
+            <Games games={games} setDisplay={setDisplay} finished />
           </div>
           }
           {display === 'open games' && <div className={styles.games}>
-            <Games games={games} socket={socket} cookies={cookies} open />
+            <Games games={games} setDisplay={setDisplay} socket={socket} cookies={cookies} open />
           </div>
           }
         </div>
         // </div>
         : (gameProgress === 'placement' || gameProgress === 'ongoing') ? <>
           <div className={styles.boardcontainer}>
-
             {gameProgress === 'placement' && <button
               onClick={() => { orientation === 'v' ? setOrientation('h') : setOrientation('v') }}>
               change boat orientation
             </button>
             }
-
             <Board player board={boardState} character={character} socket={socket.current}
               boatNames={boatNames} setBoatNames={setBoatNames}
               cookies={cookies} setCookie={cookies.set}
@@ -206,20 +203,26 @@ function App() {
             />
           </div>
         </> : cookies.get('user')?.state === 'matching' ?
-          <>
-            <button onClick={() => {
-              cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
-              console.log(cookies.get('user'))
-              setMessages([...messages])
-            }}>games</button>
-            <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
-              setBoatNames={setBoatNames} cookies={cookies}
-              socket={socket} />
-          </> : cookies.get('user')?.state === 'aftergame' ?
-            <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
-              enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
+          <div className={styles.pagecontent}>
+            <div>
+              <button onClick={() => {
+                cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+                setMessages([...messages])
+              }}>back</button>
+              <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
+                setBoatNames={setBoatNames} cookies={cookies}
+                socket={socket} />
+            </div>
+          </div> : cookies.get('user')?.state === 'aftergame' ?
+            <div className={styles.pagecontent}>
+              <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
+                enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
+            </div>
             : <div></div>
       }
+      <footer>
+        wow
+      </footer>
     </div>
   )
 }

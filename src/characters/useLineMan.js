@@ -124,34 +124,37 @@ const useLineMan = () => {
                     onClick={() => {
                         if (turn && !selecting && charges) {
                             socket.current.send(JSON.stringify({ shot: true, id: cookies.get('user').id, twoShot: true }))
-                            setTurn(false)
                         }
                     }}
                     onMouseLeave={(e) => {
                         setEnemyBoardState(prev => {
-                            if (Number(lastShots[0]) && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
-                            if (Number(lastShots[1]) && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
-                            return { ...prev }
+                            if (lastShots) {
+                                if (Number(lastShots[0]) && prev[lastShots[0]].hover === 'twoShot') prev[lastShots[0]].hover = prev[lastShots[0]].last
+                                if (Number(lastShots[1]) && prev[lastShots[1]].hover === 'twoShot') prev[lastShots[1]].hover = prev[lastShots[1]].last
+                                return { ...prev }
+                            }
                         })
                     }}
                     onMouseOver={(e) => {
                         if (turn) {
                             setEnemyBoardState(prev => {
-                                let isNew = false
-                                if (lastShots[0] && prev[lastShots[0]].hover !== 'twoShot') {
-                                    prev[lastShots[0]].last = prev[lastShots[0]].hover
-                                    prev[lastShots[0]].hover = 'twoShot'
-                                    isNew = true
-                                }
-                                if (lastShots[1] && prev[lastShots[1]].hover !== 'twoShot') {
-                                    prev[lastShots[1]].last = prev[lastShots[1]].hover
-                                    prev[lastShots[1]].hover = 'twoShot'
-                                    isNew = true
-                                }
-                                if (isNew) {
-                                    return { ...prev }
-                                } else {
-                                    return prev
+                                if (lastShots) {
+                                    let isNew = false
+                                    if (lastShots[0] && prev[lastShots[0]].hover !== 'twoShot') {
+                                        prev[lastShots[0]].last = prev[lastShots[0]].hover
+                                        prev[lastShots[0]].hover = 'twoShot'
+                                        isNew = true
+                                    }
+                                    if (lastShots[1] && prev[lastShots[1]].hover !== 'twoShot') {
+                                        prev[lastShots[1]].last = prev[lastShots[1]].hover
+                                        prev[lastShots[1]].hover = 'twoShot'
+                                        isNew = true
+                                    }
+                                    if (isNew) {
+                                        return { ...prev }
+                                    } else {
+                                        return prev
+                                    }
                                 }
                             })
                         }
@@ -175,7 +178,7 @@ const useLineMan = () => {
                 }}>
                     makeLine
                 </button>
-            </div>
+            </div >
         )
     }
     return { lastShots, setLastShots, shootLine, setSelection, setCharges, selecting, setSelecting, LineManUI }

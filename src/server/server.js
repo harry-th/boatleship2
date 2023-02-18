@@ -171,7 +171,7 @@ wss.on('connection', (ws, req) => {
                         state: 'finished', winnerId: id, loserId: groups[id],
                         winner: userInfo[id].name, loser: userInfo[groups[id]].name,
                         winnerCharacter: userInfo[id].character, loserCharacter: userInfo[groups[id]].character,
-                        disconnected: true, disconnectreason: 'disconnected from server'
+                        disconnected: true, disconnectreason: 'they disconnected from server'
                     }
                     wscodes[groups[id]].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true, hasLeft: true }))
                     delete userData[groups[id]]
@@ -207,7 +207,8 @@ wss.on('connection', (ws, req) => {
             if (message.rematch) {
                 if (enemyinfo.lookingForRematch === id) {
                     delete enemyinfo.lookingForRematch
-                    games[playerinfo.currentGame].state = 'placement'
+                    games[playerinfo.currentGame] = { info: 'rematch', state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name }
+
                     wscodes[id].send(JSON.stringify({ rematchAccepted: true, enemyinfo, time: 60 }))
                     wscodes[groups[id]].send(JSON.stringify({ rematchAccepted: true, enemyinfo: playerinfo, time: 60 }))
                     placementTimer({ userData, userInfo, groups, games, id, wscodes })
@@ -220,8 +221,10 @@ wss.on('connection', (ws, req) => {
             }
 
             if (message.callbluff) {
-                callBluff({ id, userInfo, games, wscodes, groups, userData })
-                return
+                if (playerdata?.turn) {
+                    callBluff({ id, userInfo, games, wscodes, groups, userData })
+                    return
+                }
             }
             if (message.shot) {
                 if (playerdata?.turn) {
@@ -229,6 +232,7 @@ wss.on('connection', (ws, req) => {
                     if (playerinfo.character === 'lineman') {
                         if ((message.twoShot || message.shootline) && playerdata.charges < 1) return // this and the line below prevent illegal behavior
                         else if (message.shootline && (index[1] - index[0] !== 1 && index[1] - index[0] !== 10)) return
+                        else if (message.twoShot && !playerdata.twoShots) return
                     }
                     if (playerinfo.character === 'orangeman') {
                         if (message.retaliation && playerdata.bluffing !== 'ready') return // prevents using ability if not in the proper state
