@@ -73,9 +73,9 @@ function App() {
       setEnemyFreeShotMiss(0)
       setTurnNumber(0)
       setEnemyTurnNumber(0)
-      setBoardState(() => generateBoard(true, true))
+      setBoardState(generateBoard(true, true))
       setMessages([])
-      setEnemyBoardState(() => generateBoard(true, true))
+      setEnemyBoardState(generateBoard(true, true))
     }
   }, [gameProgress])
 

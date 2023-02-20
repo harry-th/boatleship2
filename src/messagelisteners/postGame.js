@@ -1,6 +1,14 @@
 const postGame = ({ message, cookies, ss }) => {
     if (message.issue === 'disconnect') {
-        cookies.set('user', { name: cookies.get('user').name })
+        ss.setEnemyInfo(prev => {
+            prev.lookingForRematch = 'left'
+            return { ...prev }
+        })
+    }
+    if (message.issue === 'reconnectAfterDisconnect') {
+        if (cookies.get('user').state !== 'matching' && cookies.get('user').state !== 'prematching') {
+            cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+        }
     }
     if (message.chat) {
         ss.setChat(prev => [message.chat, ...prev])

@@ -143,7 +143,9 @@ wss.on('connection', (ws, req) => {
         console.log(userData[id].timer)
         ws.send(JSON.stringify({ for: 'player', timer: 1, time: Math.floor((userData[id]?.timer?.remaining) / 1000), messagetype: 'reconnect', info: { enemyInfo, ...userInfo[id], }, ...boardState }))
     } else if (games[userInfo[id].currentGame]?.state === 'finished') {
-        ws.send(JSON.stringify({ issue: 'disconnect' }))
+        ws.send(JSON.stringify({ issue: 'reconnectAfterDisconnect' }))
+    } else {
+
     }
 
     // update user socket
@@ -180,6 +182,8 @@ wss.on('connection', (ws, req) => {
             }
         } else if (games[userInfo[id]?.currentGame]?.state === 'placement') {
             if (userData[id]?.timer?.code) userData[id].timer.remaining = userData[id].timer.time - Date.now()
+        } else if (games[userInfo[id].currentGame]?.state === 'finished') {
+            if (wscodes[groups[id]]) wscodes[groups[id]].send(JSON.stringify({ issue: 'disconnect' }))
         }
     })
 
@@ -358,7 +362,7 @@ wss.on('connection', (ws, req) => {
                             wscodes[groups[id]].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true }))
                             wscodes[id].send(JSON.stringify({ for: 'opponent', loss: true, hasDisconnected: true }))
                             delete userData[id]
-                            delete userData[id]
+                            delete userData[groups[id]]
                         }, 22000)
                     } else {
                         userData[groups[id]].turnNumber = 0
