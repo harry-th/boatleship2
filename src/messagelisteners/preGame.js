@@ -16,7 +16,6 @@ const preGame = ({ message, cookies, ss }) => {
     }
     if (message.boatsreceived) {
         ss.timer.clear(1)
-        cookies.set('user', { ...cookies.get('user'), state: 'ongoing' })
         if (message.charges) ss.setCharges(message.charges)
         if (message.bluffing === false || message.bluffing) ss.setBluffing(message.bluffing)
         if (message.turn) {

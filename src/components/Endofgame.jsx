@@ -23,6 +23,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, 
                     socket.current.send(JSON.stringify({ id: cookies.get('user').id, chat: `${cookies.get('user').name}: ${e.target.chat.value}` }))
                 }}>
                     <input name='chat' />
+
                 </form>}
             </div>
             <p>well wasn't that fun! <button onClick={() => {

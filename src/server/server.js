@@ -328,7 +328,7 @@ wss.on('connection', (ws, req) => {
                     wscodes[groups[id]].send(JSON.stringify({ shotresults, ...enemyModifier }))
                 }
             }
-            if (message.boatdata) {
+            if (message.boatdata && games[userInfo[id].currentGame].state === 'placement') {
                 let charges, bluffing
                 if (userInfo[id].character === 'lineman') charges = { charges: 4 }
                 if (userInfo[id].character === 'orangeman') bluffing = { bluffing: false }

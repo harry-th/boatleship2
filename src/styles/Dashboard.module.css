@@ -5,7 +5,7 @@
 }
 
 .logcontainer {
-  background-color: rgb(202, 158, 77);
+  background-color: rgb(207, 175, 107);
   display: flex;
   flex-direction: column-reverse;
   overflow: scroll;
@@ -31,6 +31,7 @@
   border-top: 0px;
 }
 .usercontainer .turncontainer {
+  background-color: rgb(207, 175, 107);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -39,10 +40,10 @@
   border-right: 0px;
 }
 .usercontainer .turncontainer .turnIndicator {
-  margin: 3px;
+  margin: 5px;
   font-size: 0px;
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   border: 2px solid rgb(78, 41, 10);
 }
 .usercontainer .turncontainer .turnIndicatorTrue {

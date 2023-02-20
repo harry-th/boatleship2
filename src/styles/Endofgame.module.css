@@ -5,24 +5,38 @@
 }
 
 .endgamechatbox {
+  background-color: bisque;
   width: 500px;
   height: 200px;
   border: 2px solid black;
 }
 .endgamechatbox form {
+  margin-top: 0px;
+  height: 0%;
   margin: 0px;
   width: 99%;
 }
 .endgamechatbox input {
+  text-indent: 10px;
+  position: relative;
+  right: 2px;
+  bottom: 1px;
   text-decoration: none;
-  width: 99%;
+  width: 100.2%;
   height: -moz-fit-content;
   height: fit-content;
-  font-weight: 1000;
+  font-weight: 600;
+  border: 2px solid black;
+  background-color: bisque;
+  border-radius: 4px;
+}
+.endgamechatbox input:focus {
+  outline: 1px solid orange;
 }
 
 .endgamechat {
   height: 180px;
+  width: 480px;
   display: flex;
   flex-direction: column-reverse;
   overflow: scroll;
@@ -34,5 +48,6 @@
   width: 100%;
   margin-top: 2px;
   margin-bottom: 2px;
-  margin-left: 30px;
+  margin-left: 20px;
+  word-wrap: break-word;
 }/*# sourceMappingURL=Endofgame.module.css.map */

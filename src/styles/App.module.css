@@ -3,6 +3,8 @@
   width: 100vw;
   text-align: center;
   background-color: rgb(212, 185, 149);
+  border-left: 4px solid rgb(44, 23, 5);
+  border-right: 4px solid rgb(44, 23, 5);
 }
 .app footer {
   background-color: rgb(8, 8, 44);
@@ -21,6 +23,7 @@
 .app .title {
   color: white;
   background-color: rgb(18, 18, 214);
+  border-top: 4px solid rgb(44, 23, 5);
   border-bottom: 4px solid rgb(44, 23, 5);
   margin-top: 0px;
   padding-top: 20px;
@@ -29,7 +32,6 @@
 }
 .app .boardcontainer {
   padding: 10px;
-  background-image: linear-gradient(rgb(190, 166, 120), rgb(146, 116, 56));
   display: flex;
   justify-content: space-evenly;
   align-items: flex-start;
