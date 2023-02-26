@@ -1,0 +1,42 @@
+.app {
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+
+  text-align: center;
+  background-color: rgb(212, 185, 149);
+  border: 4px solid rgb(44, 23, 5);
+
+  display: flex;
+  flex-direction: column;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  & > .header {
+    font-size: 24pt;
+    font-weight: 600;
+    color: white;
+    background-color: rgb(18, 18, 214);
+    border-bottom: 4px solid rgb(44, 23, 5);
+    padding: 20px;
+  }
+
+  & > .pagecontent {
+    height: 100%;
+    overflow: auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  & > .footer {
+    padding: 5px;
+    color: rgb(139, 104, 76);
+    background-color: rgb(8, 8, 44);
+    border-top: 4px solid rgb(78, 41, 10);
+  }
+}

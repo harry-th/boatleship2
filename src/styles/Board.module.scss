@@ -1,0 +1,94 @@
+.board {
+  width: 350px;
+  height: 350px;
+
+  cursor: crosshair;
+
+  background-color: rgb(12, 15, 224);
+  margin: 50px;
+  border: 1px solid blue;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows:  1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  column-gap: 1px;
+  row-gap: 1px;
+
+  .square {
+    user-select: none;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: blue;
+    border: 1px solid rgb(12, 15, 224);
+
+    &:hover {
+      background-color: rgb(29, 32, 240);
+    }
+    
+    &.inactive {
+      pointer-events: none;
+    }
+
+    &.selectable {
+      background-color: rgb(226, 188, 117);
+    }
+
+    &.guess {
+      &::after {
+        content: "?";
+        color: black;
+      }
+      background-color: greenyellow;
+    }
+
+    &.nope {
+      background-color: rgb(134, 42, 42);
+    }
+
+    &.selectable.green {
+      background-color: green;
+    }
+
+    &.hit {
+      background-color: red;
+      pointer-events: none;
+    }
+
+    &.missed.green {
+      background-color: white;
+    }
+
+    &.protected {
+      background-color: orange;
+      pointer-events: none;
+
+      &.missed {
+        background-color: rgb(203, 177, 128);
+      }
+
+      &.mine {
+        background-color: orange;
+      }
+    }
+
+    &.missed {
+      background-color: white;
+      pointer-events: none;
+    }
+
+    &.mine {
+      background-color: black;
+    }
+
+    &.twoShot {
+      background-color: yellow;
+    }
+
+    &.hover {
+      background-color: black;
+    }
+  }
+}
