@@ -12,7 +12,11 @@ const retaliation = require('./retaliation');
 const wss = new WebSocketServer({ port: 8080, ssl: true });
 
 const groups = {} // {id:opponentid, opponentid:id}
-const games = {} //gameId: {state: 'ongoing', players:[id1, id2], player1:name, player2:name }
+const games = {
+    1: { disconnected: true, disconnectreason: "placement time ran out", winner: "harry", loser: "bilbo saggins", state: "finished" },
+    2: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+
+} //gameId: {state: 'ongoing', players:[id1, id2], player1:name, player2:name }
 const wscodes = {} //{id: ws}
 const userData = {} //{id:{gameinformation}}
 const userInfo = {}//{id:{userinformation}}
@@ -38,7 +42,7 @@ const matchcode = ({ id, code, character, name, boatnames }) => { // code based 
             wscodes[id].send(JSON.stringify({ codematch: true, matched: true, enemyinfo, time: 60, character: playerinfo.character }))
             wscodes[groups[id]].send(JSON.stringify({ matched: true, enemyinfo: playerinfo, time: 60, character: enemyinfo.character }))
             const gameId = uuid.v4()
-            games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name }
+            games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name, player1character: playerinfo.character, player2character: enemyinfo.character }
             playerinfo.currentGame = gameId
             enemyinfo.currentGame = gameId
             placementTimer({ userData, userInfo, groups, games, id, wscodes })
@@ -56,7 +60,7 @@ const findGroup = ({ groups, id, name, character, boatnames }) => {
         wscodes[id].send(JSON.stringify({ matched: true, enemyinfo, time: 60 }))
         wscodes[groups[id]].send(JSON.stringify({ matched: true, enemyinfo: playerinfo, time: 60 }))
         const gameId = uuid.v4()
-        games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name }
+        games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name, player1character: playerinfo.character, player2character: enemyinfo.character }
         playerinfo.currentGame = gameId
         enemyinfo.currentGame = gameId
         placementTimer({ userData, userInfo, groups, games, id, wscodes })
@@ -88,7 +92,7 @@ wss.on('connection', (ws, req) => {
         userInfo[id] = {}  // placeholder
         ws.send(JSON.stringify({
             cookies: {
-                'user': { id, state: 'prematching', wins: 0, losses: 0 }
+                'user': { id, state: 'prematching' }
             }
         }))
         console.log('new user:', id)
@@ -211,7 +215,7 @@ wss.on('connection', (ws, req) => {
             if (message.rematch) {
                 if (enemyinfo.lookingForRematch === id) {
                     delete enemyinfo.lookingForRematch
-                    games[playerinfo.currentGame] = { info: 'rematch', state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name }
+                    games[playerinfo.currentGame] = { info: 'rematch', state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name, player1character: playerinfo.character, player2character: enemyinfo.character }
 
                     wscodes[id].send(JSON.stringify({ rematchAccepted: true, enemyinfo, time: 60 }))
                     wscodes[groups[id]].send(JSON.stringify({ rematchAccepted: true, enemyinfo: playerinfo, time: 60 }))
@@ -311,7 +315,8 @@ wss.on('connection', (ws, req) => {
                             games[playerinfo.currentGame] = {
                                 state: 'finished', winnerId: id, loserId: groups[id],
                                 winner: playerinfo.name, loser: enemyinfo.name,
-                                winnerCharacter: playerinfo.character, loserCharacter: enemyinfo.character
+                                winnerCharacter: playerinfo.character, loserCharacter: enemyinfo.character,
+                                boatsleft: 4 - playerdata.boatPlacements.filter(i => i.sunk).length
                             }
                             delete userData[groups[id]]
                             delete userData[id]

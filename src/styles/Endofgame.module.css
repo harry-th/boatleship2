@@ -32,6 +32,7 @@
 }
 .endgamechatbox input:focus {
   outline: 1px solid orange;
+  background-color: rgb(216, 207, 191);
 }
 
 .endgamechat {

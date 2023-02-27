@@ -1,5 +1,5 @@
 .app {
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
   text-align: center;
   background-color: rgb(212, 185, 149);
@@ -37,8 +37,8 @@
     height: 81vh;
   }
   .pagecontent {
-    height: 83vh;
-    width: 100vw;
+    min-height: 83vh;
+    min-width: 100vw;
     display: flex;
     justify-content: space-evenly;
     .homepanel {
@@ -53,6 +53,7 @@
       flex-wrap: wrap;
       border: 5px solid black;
       border-radius: 8px;
+      margin-bottom: 10px;
       div {
         display: flex;
         justify-content: center;
@@ -73,15 +74,35 @@
       }
     }
     .games {
-      align-self: center;
+      margin-bottom: 10px;
+      width: 100%;
+      table {
+        max-width: 85vw;
+        min-width: 40vw;
+        margin: auto;
+        max-height: 70vh;
+        margin-bottom: 20px;
+      }
+      th {
+        text-align: left;
+        padding-top: 10px;
+      }
+
       table,
-      th,
       td {
         border: 1px solid;
       }
       td {
+        height: 18px;
         text-align: left;
+        padding: 5px;
         font-family: "Courier New", Courier, monospace;
+        p {
+          font-size: 15px;
+          max-height: 25px;
+          line-height: 16px;
+          margin: 0;
+        }
       }
     }
   }
