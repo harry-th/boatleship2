@@ -2,8 +2,8 @@ import { useState } from "react"
 
 const useTimer = () => {
 
-    const [timer1, setTimer1] = useState(sessionStorage.getItem('timer1') ? Number(JSON.parse(sessionStorage.getItem('timer1'))) : null)
-    const [timer2, setTimer2] = useState(sessionStorage.getItem('timer2') ? Number(JSON.parse(sessionStorage.getItem('timer2'))) : null)
+    const [timer1, setTimer1] = useState(null)
+    const [timer2, setTimer2] = useState(null)
     const [code1, setCode1] = useState(null)
     const [code2, setCode2] = useState(null)
     const timers = { 1: { timer: timer1, setTimer: setTimer1, code: code1, setCode: setCode1 }, 2: { timer: timer2, setTimer: setTimer2, code: code2, setCode: setCode2 } }

@@ -115,10 +115,7 @@ const useLineMan = () => {
     }
     const LineManUI = ({ turn, enemyBoardState, setEnemyBoardState, socket, cookies, setTurn }) => {
         return (
-            <div
-
-
-            >
+            <div>
                 charges: {charges}
                 <button
                     onClick={() => {
@@ -135,7 +132,7 @@ const useLineMan = () => {
                             }
                         })
                     }}
-                    onMouseOver={(e) => {
+                    onMouseEnter={(e) => {
                         if (turn) {
                             setEnemyBoardState(prev => {
                                 if (lastShots) {

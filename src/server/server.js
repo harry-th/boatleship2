@@ -15,6 +15,42 @@ const groups = {} // {id:opponentid, opponentid:id}
 const games = {
     1: { disconnected: true, disconnectreason: "placement time ran out", winner: "harry", loser: "bilbo saggins", state: "finished" },
     2: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    12: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    22: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    3222: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    24: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    23: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    2321: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    92: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    72: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    62: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    82: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    76452: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    542: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    342: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    462: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    7542: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    23321: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    432: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    46312: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    64342: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    322: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    5632: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    5422: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    65432: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    265342: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    4322: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    4112: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    3562: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    3212: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    56232: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    65642: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    25231: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    3422: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    5342: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    64532: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    32152: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
+    2765: { winner: "harry", loser: "bilbo saggins", state: "finished", winnerCharacter: 'lineman', loserCharacter: 'cornerman' },
 
 } //gameId: {state: 'ongoing', players:[id1, id2], player1:name, player2:name }
 const wscodes = {} //{id: ws}
@@ -316,7 +352,7 @@ wss.on('connection', (ws, req) => {
                                 state: 'finished', winnerId: id, loserId: groups[id],
                                 winner: playerinfo.name, loser: enemyinfo.name,
                                 winnerCharacter: playerinfo.character, loserCharacter: enemyinfo.character,
-                                boatsleft: 4 - playerdata.boatPlacements.filter(i => i.sunk).length
+                                boatsleft: 4 - Object.values(playerdata.boatPlacements).filter(i => i.sunk).length
                             }
                             delete userData[groups[id]]
                             delete userData[id]
@@ -337,7 +373,7 @@ wss.on('connection', (ws, req) => {
                 let charges, bluffing
                 if (userInfo[id].character === 'lineman') charges = { charges: 4 }
                 if (userInfo[id].character === 'orangeman') bluffing = { bluffing: false }
-                clearTimeout(userData[id].timer.code)
+                clearTimeout(userData[id]?.timer?.code)
                 delete userData[id].timer
                 if (userData[id]) delete userData[id]
                 userData[id] = {

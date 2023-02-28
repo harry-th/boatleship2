@@ -20,7 +20,6 @@ const Customization = ({ character, setCharacter, boatNames, setBoatNames, cooki
         setBoatNames(newBoatNames)
         setDisplay('done')
     }
-    console.log(cookies.get('user'))
     return (
         <div className={styles.customization}>
             {(!character) && <div className={styles.characterselect}>

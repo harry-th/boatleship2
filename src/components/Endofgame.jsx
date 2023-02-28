@@ -1,5 +1,6 @@
 import styles from '../styles/Endofgame.module.css'
-const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, chat, setChat }) => {
+const Endofgame = ({ gameProgress, cookies, setGameProgress,
+    socket, enemyInfo, chat, setChat, setDisplay }) => {
     return (<>
         <div>
             <header>
@@ -28,6 +29,7 @@ const Endofgame = ({ gameProgress, cookies, setGameProgress, socket, enemyInfo, 
             </div>
             <p>well wasn't that fun! <button onClick={() => {
                 cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+                setDisplay('home')
                 setChat([])
                 setGameProgress('preplacement')
                 socket.current.send(JSON.stringify({ id: cookies.get('user').id, newgame: true }))

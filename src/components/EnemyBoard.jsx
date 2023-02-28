@@ -6,7 +6,7 @@ import styles from '../styles/Board.module.css'
 const Board = ({ socket, cookies, enemyBoardState,
     gameProgress, turn, setTurn, character, boardState, setEnemyBoardState, setBoardState,
     shootLine, enemyInfo, bluffing, timer }) => {
-    if (!enemyBoardState) setEnemyBoardState(generateBoard(true, true))
+    if (!enemyBoardState) setEnemyBoardState(generateBoard(true, true, 100))
     const handleClick = (index, modifier) => {
         if (turn && enemyInfo?.status !== 'disconnected') {
             index = !Array.isArray(index) ? [index] : index

@@ -16,7 +16,6 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
         if ((index > (page * 20) || index < ((page - 1) * 20))) return false
         else return true
     })
-    console.log(selectedGames, current)
 
     const [errorMessage, setErrorMessage] = useState(null)
     useEffect(() => {
@@ -35,12 +34,14 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
             }
         }
     }, [socket, open, cookies])
+    console.log(selectedGames, current)
+
     return (
         <div>
-            <button onClick={() => setDisplay('home')}>back</button>
+            <button onClick={() => { setDisplay('home') }}>back</button>
             {selectedGames.length > 0 && <div>
                 <div>
-                    {Pagenumbers({ games, setPage, page })}
+                    {Pagenumbers({ selectedGames, setPage, page })}
                 </div>
                 <div>
                     <table>
@@ -89,8 +90,8 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
                                     <td>name</td>
                                     <td>character</td>
                                 </th>
-                                <th><p>boats left?</p>
-                                    <p>disconnect reason?</p></th>
+                                <th><p>boats left//</p>
+                                    <p>disconnect reason</p></th>
                             </>}
                             {current && <>
                                 <th>
@@ -134,7 +135,7 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
                                                 <td> {item.winnerCharacter} </td>
                                                 <td>{item.loser}</td>
                                                 <td>{item.loserCharacter}</td>
-                                                <td>{item.boatsleft}</td>
+                                                <td>{item.winner} had {item.boatsleft} boats left</td>
                                             </tr>
                                         )
                                     } else if (item.state === 'looking for match') {

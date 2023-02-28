@@ -64,7 +64,9 @@
         border: thin solid rgb(22, 26, 224);
         width: 32.955%;
         height: 32.955%;
-        &:hover {
+        transition: color 1s, background-color 1s;
+
+        &.hovered {
           color: white;
           background-color: rgb(13, 13, 233);
         }
@@ -77,18 +79,19 @@
       margin-bottom: 10px;
       width: 100%;
       table {
+        padding: 20px;
         max-width: 85vw;
         min-width: 40vw;
         margin: auto;
         max-height: 70vh;
         margin-bottom: 20px;
+        border: 2px solid black;
       }
       th {
         text-align: left;
         padding-top: 10px;
       }
 
-      table,
       td {
         border: 1px solid;
       }

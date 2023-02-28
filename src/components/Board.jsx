@@ -11,7 +11,7 @@ const Board = ({ player, socket, cookies, boardState, setBoardState,
   orientation, gameProgress, turn, setTurn, boatNames, character, timer }) => {
 
 
-  const [hoverState, setHoverState] = useState(generateBoard(true, true))
+  const [hoverState, setHoverState] = useState(generateBoard(true, true, 100))
   const [boatPlacements, setBoatPlacements] = useState([])
   const boatrules = useBoatrules({ names: boatNames, setBoatPlacements, setBoardState })
 

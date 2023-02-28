@@ -25,7 +25,7 @@ function App() {
 
   const socket = useRef(null);
   const [gameProgress, setGameProgress] = useState('preplacement')
-  const [boardState, setBoardState] = useState(() => generateBoard(true, true))
+  const [boardState, setBoardState] = useState(() => generateBoard(true, true, 100))
   const [boatNames, setBoatNames] = useState(['destroyer', 'cruiser', 'battleship', 'carrier'])
   const [messages, setMessages] = useState([])
   const [chat, setChat] = useState([])
@@ -33,7 +33,7 @@ function App() {
   const [enemyFreeShotMiss, setEnemyFreeShotMiss] = useState(0)
   const [turnNumber, setTurnNumber] = useState(0)
   const [enemyTurnNumber, setEnemyTurnNumber] = useState(turnNumber)
-  const [enemyBoardState, setEnemyBoardState] = useState(() => generateBoard(true, true))
+  const [enemyBoardState, setEnemyBoardState] = useState(() => generateBoard(true, true, 100))
   const [enemyInfo, setEnemyInfo] = useState({})
   const [character, setCharacter] = useState(false)
   const [turn, setTurn] = useState(true)
@@ -41,6 +41,8 @@ function App() {
   const [games, setGames] = useState([])
   const [display, setDisplay] = useState('home')
   const timer = useTimer()
+
+  const [menuArray, setMenuArray] = useState(generateBoard(true, true, 9))
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
   // websocket connection
@@ -68,16 +70,23 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (gameProgress !== 'placement' && gameProgress !== 'ongoing') {
+    if ((gameProgress !== 'placement' && gameProgress !== 'ongoing')) {
       setFreeShotMiss(0)
       setEnemyFreeShotMiss(0)
       setTurnNumber(0)
       setEnemyTurnNumber(0)
-      setBoardState(generateBoard(true, true))
+      setBoardState(generateBoard(true, true, 100))
       setMessages([])
-      setEnemyBoardState(generateBoard(true, true))
+      setEnemyBoardState(generateBoard(true, true, 100))
     }
   }, [gameProgress])
+
+  useEffect(() => {
+    if ((gameProgress !== 'placement' && gameProgress !== 'ongoing' && (timer.timer1 || timer.timer2))) {
+      timer.clear(1)
+      timer.clear(2)
+    }
+  }, [gameProgress, timer])
 
   // socket open
   useEffect(() => {
@@ -110,7 +119,59 @@ function App() {
     }
   }, [bluffing, setLastShots, setBluffing, setCharges, timer])
 
-
+  const menuSquare = ({ index, page = 'home', special }) => {
+    return (
+      <div onClick={() => {
+        if (special) special()
+        setDisplay(page)
+        setMenuArray(prev => {
+          prev[index].hover = false
+          return { ...prev }
+        })
+      }}
+        onMouseEnter={() => {
+          setMenuArray(prev => {
+            prev[index].hover = 'hovered'
+            return { ...prev }
+          })
+        }}
+        onMouseLeave={() => {
+          setMenuArray(prev => {
+            prev[index].hover = false
+            return { ...prev }
+          })
+        }}
+        className={[styles[(menuArray)[index].state],
+        styles[(menuArray)[index].hover]].join(' ')}
+      >
+        {page !== 'home' && <p>{page}</p>}
+      </div>
+    )
+  }
+  const [idleCode, setIdlecode] = useState(null)
+  const idleMenu = (i = 0) => {
+    let process = (i) => {
+      setMenuArray(prev => {
+        prev[i].hover = 'hovered'
+        return { ...prev }
+      })
+      setIdlecode({
+        code: setTimeout(() => {
+          i++
+          if (i > 8) i = 0
+          setMenuArray(prev => {
+            prev[(i - 1 < 0 ? 8 : i - 1)].hover = false
+            return { ...prev }
+          })
+          process(i)
+        }, 1700), i
+      })
+    }
+    process(i)
+  }
+  useEffect(() => {
+    idleMenu()
+  }, [])
   return (
     <div className={styles.app}>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
@@ -120,26 +181,29 @@ function App() {
       {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
         <div className={styles.pagecontent}>
           {display === 'home' &&
-            <div className={styles.boardmockmenu}>{[...Array(9)].map((i, index) => {
-              if (index === 0) {
-                return <div onClick={() => {
-                  setDisplay('current games')
-                }}><p>current games</p></div>
-              } else if (index === 2) {
-                return <div onClick={() => {
-                  setDisplay('finished games')
-                }}><p>finished games</p></div>
-              } else if (index === 3) {
-                return <div onClick={() => {
-                  setDisplay('open games')
-                }}><p>open games</p></div>
-              } else if (index === 4) {
-                return <div onClick={() => {
+            <div className={styles.boardmockmenu}
+              onMouseEnter={() => {
+                clearTimeout(idleCode.code)
+                setMenuArray(prev => {
+                  prev[idleCode.i].hover = false
+                  return { ...prev }
+                })
+              }}
+              onMouseLeave={() => idleMenu(idleCode.i)}
+            >{[...Array(9)].map((i, index) => {
+              let page, special
+              if (index === 0) page = 'current games'
+              if (index === 2) page = 'finished games'
+              if (index === 3) page = 'open games'
+              if (index === 4) {
+                page = 'play'
+                special = () => {
                   cookies.set('user', { ...cookies.get('user'), state: 'matching' })
                   setMessages([...messages])
-                }}><p>Play</p></div>
-              } else
-                return <div></div>
+                }
+              }
+              return menuSquare({ index, page, special })
+
             })}
             </div>
           }
@@ -165,6 +229,7 @@ function App() {
             </button>
             }
             <Board player board={boardState} character={character} socket={socket.current}
+              turn={turn}
               boatNames={boatNames} setBoatNames={setBoatNames}
               cookies={cookies} setCookie={cookies.set}
               boardState={boardState} setBoardState={setBoardState}
@@ -207,6 +272,7 @@ function App() {
             <div>
               <button onClick={() => {
                 cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+                setDisplay('home')
                 setMessages([...messages])
               }}>back</button>
               <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
@@ -215,8 +281,10 @@ function App() {
             </div>
           </div> : cookies.get('user')?.state === 'aftergame' ?
             <div className={styles.pagecontent}>
-              <Endofgame gameProgress={gameProgress} cookies={cookies} setGameProgress={setGameProgress} socket={socket}
-                enemyInfo={enemyInfo} chat={chat} setChat={setChat} />
+              <Endofgame gameProgress={gameProgress} cookies={cookies}
+                setGameProgress={setGameProgress} socket={socket}
+                enemyInfo={enemyInfo} chat={chat} setChat={setChat}
+                setDisplay={setDisplay} />
             </div>
             : <div></div>
       }

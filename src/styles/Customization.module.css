@@ -5,12 +5,15 @@
   align-items: center;
 }
 .customization .name {
+  margin: 10px;
+  margin-top: 50px;
   cursor: pointer;
   font-size: 18px;
   font-weight: 600;
   text-decoration: underline;
 }
 .customization .gamefindmenu {
+  margin: 20px;
   display: flex;
   flex-direction: column;
 }
@@ -80,10 +83,23 @@
 .customization .boatform form label {
   font-weight: 500;
 }
+.customization .boatform form label:nth-child(3) {
+  color: rgb(54, 90, 6);
+}
+.customization .boatform form label:nth-child(5) {
+  color: rgb(129, 81, 7);
+}
+.customization .boatform form label:nth-child(7) {
+  color: rgb(27, 44, 197);
+}
+.customization .boatform form label:nth-child(9) {
+  color: rgb(179, 14, 28);
+}
 .customization .boatform .boatfields {
   display: flex;
   flex-direction: column;
 }
 .customization .boatform .boatfields h4 {
+  color: rgb(40, 63, 194);
   margin: 10px;
 }/*# sourceMappingURL=Customization.module.css.map */
