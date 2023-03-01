@@ -1,6 +1,9 @@
 const Cookies = require('universal-cookie');
 const uuid = require('uuid');
 const { WebSocketServer } = require('ws');
+const fs = require("fs");
+const HttpsServer = require('https').createServer;
+
 const { normalSinkCheck, cornerSinkCheck } = require('./boatSinkCheck');
 const callBluff = require('./callBluff');
 const genericTurnAction = require('./genericTurnAction');
@@ -9,7 +12,12 @@ const placementTimer = require('./placementTimer');
 const reconnectTimer = require('./reconnectTimer');
 const retaliation = require('./retaliation');
 
-const wss = new WebSocketServer({ port: 8080, ssl: true });
+const server = HttpsServer({
+    cert: fs.readFileSync('/etc/pki/tls/certs/domain.cert.pem'),
+    key: fs.readFileSync('/etc/pki/tls/private/private.key.pem')
+})
+
+const wss = new WebSocketServer({ port: 8080, server });
 
 const groups = {} // {id:opponentid, opponentid:id}
 const games = {

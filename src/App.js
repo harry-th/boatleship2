@@ -51,7 +51,7 @@ function App() {
   // https://overreacted.io/a-complete-guide-to-useeffect/
   // socket connect/reconnect
   useEffect(function connect() {
-    socket.current = new WebSocket('ws://localhost:8080/ws');
+    socket.current = new WebSocket('wss://boatle.xyz:8080');
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
       console.log('closed')
