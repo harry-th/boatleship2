@@ -52,7 +52,14 @@ function App() {
   // socket connect/reconnect
   useEffect(function connect() {
     //wss://boatle.xyz:8080
-    socket.current = new WebSocket('ws://localhost:8080/ws');
+    socket.current = new WebSocket('ws://localhost:8080');
+
+    socket.current.onopen = (e) => {
+      // when socket opens, send cookies if they exist
+      const user = cookies.get('user');
+      socket.current.send(JSON.stringify({ user }));
+    }
+
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
       console.log('closed')
