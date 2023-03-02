@@ -128,18 +128,20 @@ wss.on('connection', (ws) => {
         let id = JSON.parse(data)?.user?.id;
 
         // cookie data was received
+        console.log('userinfo', userInfo[id], 'data', JSON.parse(data)?.user?.id)
         if (!userInfo[id]) {
             do { id = uuid.v4() } while (groups.hasOwnProperty(id));
             userInfo[id] = {}  // placeholder
 
             console.log('new user', id);
+
+            ws.send(JSON.stringify({
+                cookies: {
+                    'user': { id, state: 'prematching' }
+                }
+            }));
         }
 
-        ws.send(JSON.stringify({
-            cookies: {
-                'user': { id, state: 'prematching' }
-            }
-        }));
 
         wss.emit('genuine connection', ws, id);
     }
@@ -244,12 +246,16 @@ wss.on('genuine connection', (ws, id) => {
                     wscodes[groups[id]].send(JSON.stringify({ for: 'player', win: true, hasDisconnected: true, hasLeft: true }))
                     delete userData[groups[id]]
                     delete userData[id]
+                    delete groups[groups[id]]
+                    delete groups[id]
                 }, 60000)
             }
         } else if (games[userInfo[id]?.currentGame]?.state === 'placement') {
             if (userData[id]?.timer?.code) userData[id].timer.remaining = userData[id].timer.time - Date.now()
         } else if (games[userInfo[id].currentGame]?.state === 'finished') {
             if (wscodes[groups[id]]) wscodes[groups[id]].send(JSON.stringify({ issue: 'disconnect' }))
+            delete groups[groups[id]]
+            delete groups[id]
         }
     })
 
@@ -479,6 +485,7 @@ wss.on('genuine connection', (ws, id) => {
             }
         }
         if (message.state === 'matching') {
+            if (groups[id]) console.log('id present  ' + groups[id])
             if ((!groups.hasOwnProperty(id) || message.character !== userInfo[id].character) && !message.privacy) {
                 findGroup({ groups, id: id, name: message.name, character: message.character, boatnames: message.boatNames })
             } else if (message.privacy) { // code based matching

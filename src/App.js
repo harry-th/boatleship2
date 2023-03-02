@@ -52,7 +52,7 @@ function App() {
   // socket connect/reconnect
   useEffect(function connect() {
     //wss://boatle.xyz:8080
-    socket.current = new WebSocket('ws://localhost:8080');
+    socket.current = new WebSocket('wss://boatle.xyz:8080');
 
     socket.current.onopen = (e) => {
       // when socket opens, send cookies if they exist
@@ -105,7 +105,7 @@ function App() {
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
-      if (message.code) console.log(message.code)
+      console.log(message)
       if (message.games) setGames(message.games)
       console.log(message)
       if (message.cookies) {  // set cookies received from server
