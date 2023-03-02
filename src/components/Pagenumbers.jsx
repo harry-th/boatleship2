@@ -1,14 +1,15 @@
-
 const Pagenumbers = ({ selectedGames, setPage, page }) => {
     const style = {
         color: 'blue',
         marginLeft: '5px',
         cursor: 'pointer',
     }
-    let pages = [...Array(Math.ceil(selectedGames.length / 20))]
+
+    let pages = [...Array(Math.ceil(selectedGames.length / 14))].fill(0)
     // if (pages > 10) {
     //     pages = pages.filter(item => (item > page - 3 && item < page + 7))
     // }
+    console.log(pages)
     return (
         <div>
             {pages.map((item, index) => {

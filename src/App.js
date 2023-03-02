@@ -51,7 +51,8 @@ function App() {
   // https://overreacted.io/a-complete-guide-to-useeffect/
   // socket connect/reconnect
   useEffect(function connect() {
-    socket.current = new WebSocket('wss://boatle.xyz:8080');
+    //wss://boatle.xyz:8080
+    socket.current = new WebSocket('ws://localhost:8080/ws');
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
       console.log('closed')
@@ -148,21 +149,24 @@ function App() {
       </div>
     )
   }
+  const [menuState, setMenuState] = useState('idle')
   const [idleCode, setIdlecode] = useState(null)
   const idleMenu = (i = 0) => {
     let process = (i) => {
+      let j = i
       setMenuArray(prev => {
         prev[i].hover = 'hovered'
         return { ...prev }
       })
       setIdlecode({
         code: setTimeout(() => {
-          i++
-          if (i > 8) i = 0
           setMenuArray(prev => {
-            prev[(i - 1 < 0 ? 8 : i - 1)].hover = false
+            prev[j].hover = false
             return { ...prev }
           })
+          if (Math.random() < 0.1) i += 3
+          else i++
+          if (i > 8) i = 0
           process(i)
         }, 1700), i
       })
@@ -181,15 +185,19 @@ function App() {
       {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
         <div className={styles.pagecontent}>
           {display === 'home' &&
-            <div className={styles.boardmockmenu}
+            <div className={[styles.boardmockmenu, styles[menuState]].join(' ')}
               onMouseEnter={() => {
                 clearTimeout(idleCode.code)
                 setMenuArray(prev => {
                   prev[idleCode.i].hover = false
                   return { ...prev }
                 })
+                setMenuState('active')
               }}
-              onMouseLeave={() => idleMenu(idleCode.i)}
+              onMouseLeave={() => {
+                idleMenu(idleCode.i)
+                setMenuState('idle')
+              }}
             >{[...Array(9)].map((i, index) => {
               let page, special
               if (index === 0) page = 'current games'

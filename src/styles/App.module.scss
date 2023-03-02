@@ -54,6 +54,9 @@
       border: 5px solid black;
       border-radius: 8px;
       margin-bottom: 10px;
+      &.idle div {
+        transition: color 1s, background-color 1s;
+      }
       div {
         display: flex;
         justify-content: center;
@@ -64,7 +67,6 @@
         border: thin solid rgb(22, 26, 224);
         width: 32.955%;
         height: 32.955%;
-        transition: color 1s, background-color 1s;
 
         &.hovered {
           color: white;
@@ -77,29 +79,33 @@
     }
     .games {
       margin-bottom: 10px;
-      width: 100%;
       table {
         padding: 20px;
         max-width: 85vw;
-        min-width: 40vw;
+        min-width: 80vw;
         margin: auto;
         max-height: 70vh;
         margin-bottom: 20px;
         border: 2px solid black;
+        background-color: antiquewhite;
       }
       th {
+        width: 33%;
         text-align: left;
         padding-top: 10px;
+        p {
+          line-height: 8px;
+        }
       }
-
       td {
         border: 1px solid;
-      }
-      td {
+        background-color: rgb(223, 188, 142);
         height: 18px;
+        width: auto;
         text-align: left;
         padding: 5px;
         font-family: "Courier New", Courier, monospace;
+        font-weight: 600;
         p {
           font-size: 15px;
           max-height: 25px;

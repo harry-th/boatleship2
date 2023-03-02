@@ -12,12 +12,12 @@ const placementTimer = require('./placementTimer');
 const reconnectTimer = require('./reconnectTimer');
 const retaliation = require('./retaliation');
 
-const server = HttpsServer({
-    cert: fs.readFileSync('/etc/pki/tls/certs/domain.cert.pem'),
-    key: fs.readFileSync('/etc/pki/tls/private/private.key.pem')
-})
+// const server = HttpsServer({
+//     cert: fs.readFileSync('/etc/pki/tls/certs/domain.cert.pem'),
+//     key: fs.readFileSync('/etc/pki/tls/private/private.key.pem')
+// })
 
-const wss = new WebSocketServer({ port: 8080, server });
+const wss = new WebSocketServer({ port: 8080 });
 
 const groups = {} // {id:opponentid, opponentid:id}
 const games = {

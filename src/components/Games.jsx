@@ -4,7 +4,6 @@ import Pagenumbers from "./Pagenumbers"
 const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) => {
     games = Object.values(games)
     const [page, setPage] = useState(1)
-
     let selectedGames = Object.values(games).filter((item, index) => {
         if (finished) return item.state === 'finished'
         else if (current) return (item.state === 'placement' || item.state === 'ongoing')
@@ -12,8 +11,8 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
         else return item
     }
     )
-    selectedGames = selectedGames.filter((item, index) => {
-        if ((index > (page * 20) || index < ((page - 1) * 20))) return false
+    const pageGames = selectedGames.filter((item, index) => {
+        if ((index > (page * 14) || index < ((page - 1) * 14))) return false
         else return true
     })
 
@@ -34,7 +33,6 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
             }
         }
     }, [socket, open, cookies])
-    console.log(selectedGames, current)
 
     return (
         <div>
@@ -110,7 +108,7 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
 
                         {selectedGames.length > 0 &&
                             <>
-                                {selectedGames.map((item) => {
+                                {pageGames.map((item) => {
                                     if (item.disconnected && item.state === 'finished') {
                                         if (!item.tie) {
                                             return (
