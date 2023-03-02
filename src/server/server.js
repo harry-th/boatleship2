@@ -16,8 +16,11 @@ const retaliation = require('./retaliation');
 //     cert: fs.readFileSync('/etc/pki/tls/certs/domain.cert.pem'),
 //     key: fs.readFileSync('/etc/pki/tls/private/private.key.pem')
 // })
+// const wss = new WebSocketServer({ server });
+// server.listen(8080)
 
 const wss = new WebSocketServer({ port: 8080 });
+
 
 const groups = {} // {id:opponentid, opponentid:id}
 const games = {
@@ -119,28 +122,43 @@ wss.on('listening', () => {
     const { address, port } = wss.address()
     console.log(`server listening on ${address}:${port}`)
 });
-// id:(their id) : groups
-//userdata[groups[your id]]
-// When a new websocket connection is established id:{ boatPlacements: message.boatPlacements, targets: message.targets, boardState: message.boardState }
-wss.on('connection', (ws, req) => {
-    const cookies = new Cookies(req.headers.cookie)
-    let id = cookies?.get('user')?.id
-    wscodes[id] = ws
 
-    ws.send(JSON.stringify({ games }))
-    // create new user
-    if (!userInfo[id]) {
-        // generate a unique user id
-        do { id = uuid.v4() } while (groups.hasOwnProperty(id))
+wss.on('connection', (ws) => {
+    const cookieHandler = (data) => {
+        let id = JSON.parse(data)?.user?.id;
 
-        userInfo[id] = {}  // placeholder
+        // cookie data was received
+        if (!userInfo[id]) {
+            do { id = uuid.v4() } while (groups.hasOwnProperty(id));
+            userInfo[id] = {}  // placeholder
+
+            console.log('new user', id);
+        }
+
         ws.send(JSON.stringify({
             cookies: {
                 'user': { id, state: 'prematching' }
             }
-        }))
-        console.log('new user:', id)
-    } else if (games[userInfo[id]?.currentGame]?.state === 'ongoing') {
+        }));
+
+        wss.emit('genuine connection', ws, id);
+    }
+
+    ws.once('message', cookieHandler);
+});
+
+// id:(their id) : groups
+//userdata[groups[your id]]
+// When a new websocket connection is established id:{ boatPlacements: message.boatPlacements, targets: message.targets, boardState: message.boardState }
+wss.on('genuine connection', (ws, id) => {
+
+    wscodes[id] = ws
+
+    ws.send(JSON.stringify({ games }))
+
+
+    // create new user
+    if (games[userInfo[id]?.currentGame]?.state === 'ongoing') {
         clearTimeout(userInfo[id].disconnectTimerCode)
         delete userInfo[id].disconnectTimerCode
         let time, playerTimer, enemyTimer
