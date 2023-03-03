@@ -52,6 +52,7 @@ function App() {
   // socket connect/reconnect
   useEffect(function connect() {
     //wss://boatle.xyz:8080
+    //ws://localhost:8080
     socket.current = new WebSocket('wss://boatle.xyz:8080');
 
     socket.current.onopen = (e) => {

@@ -10,7 +10,7 @@ const handleProtection = ({ index, boardState, extrashot }) => {
             delete boardState[sq].oldState
         }
     }
-    boardState[index].oldState ||= boardState[index].state
+    boardState[index].oldState = boardState[index].state
     boardState[index].state = 'protected'
     orangeShotResults.protected = index
     return orangeShotResults

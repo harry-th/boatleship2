@@ -317,12 +317,13 @@ wss.on('genuine connection', (ws, id) => {
                     const { bluffing } = message
                     let shotresults = { missed: [], hit: [] }
                     if (playerinfo.character === 'lineman') {
+                        if (message.twoShot && playerdata.charges) index = playerdata.twoShots
+                        else if (message.twoShot && playerdata.charges < 1) index = []
+
                         if (message.twoShot || message.shootline) {
                             playerdata.charges -= 1
                             playerModifier = { ...playerModifier, charges: playerdata.charges }
                         }
-                        if (message.twoShot && playerdata.charges) index = playerdata.twoShots
-                        else if (message.twoShot && playerdata.charges < 1) index = []
                     } else if (playerinfo.character === 'orangeman') {
                         const { bluffing, orange } = message
                         enemyModifier = { ...enemyModifier, ...(orange && { orange }) }
@@ -337,9 +338,10 @@ wss.on('genuine connection', (ws, id) => {
                         //orange active passive ability trigger on use
                         if (orange) {
                             let orangeShotResults = handleOrange({ index, playerdata, extrashot: playerModifier.extrashot, bluffing })
-                            playerModifier = { ...playerModifier, orangeShotResults }
+                            playerModifier = { ...playerModifier, orangeShotResults: { ...orangeShotResults } }
                             let enemyOrangeResults = { ...orangeShotResults }
                             enemyOrangeResults.null = [...enemyOrangeResults.mine || [], ...enemyOrangeResults.null || []]
+                            delete enemyOrangeResults.mine
                             enemyModifier = { ...enemyModifier, enemyOrangeResults }
                         }
                     }
