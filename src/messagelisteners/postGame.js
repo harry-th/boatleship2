@@ -6,8 +6,8 @@ const postGame = ({ message, cookies, ss }) => {
         })
     }
     if (message.issue === 'reconnectAfterDisconnect') {
-        if (cookies.get('user').state !== 'matching' && cookies.get('user').state !== 'prematching') {
-            cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
+        if (cookies.user.state !== 'matching' && cookies.user.state !== 'prematching') {
+            ss.setCookie('user', { ...cookies.user, state: 'prematching' })
         }
     }
     if (message.chat) {
@@ -27,7 +27,7 @@ const postGame = ({ message, cookies, ss }) => {
     }
     if (message.rematchAccepted) {
         ss.timer.setStart(1, message.time)
-        cookies.set('user', { ...cookies.get('user'), state: 'matched' })
+        ss.setCookie('user', { ...cookies.user, state: 'matched' })
         const { enemyinfo } = message
         ss.setLastShots(prev => {
             return null
@@ -46,7 +46,7 @@ const postGame = ({ message, cookies, ss }) => {
         ss.setMessages(prev => {
             return [...prev, 'You won!']
         })
-        cookies.set('user', { ...cookies.get('user'), wins: cookies.get('user').wins + 1, state: 'aftergame' })
+        ss.setCookie('user', { ...cookies.user, wins: cookies.user.wins + 1, state: 'aftergame' })
         ss.timer.clear(2) //time
         if (message.hasDisconnected) {
             ss.setEnemyInfo(prev => {
@@ -64,7 +64,7 @@ const postGame = ({ message, cookies, ss }) => {
         ss.timer.clear(1) //time
         if (message.hasDisconnected) {
         }
-        cookies.set('user', { ...cookies.get('user'), losses: cookies.get('user').losses + 1, state: 'aftergame' })
+        ss.setCookie('user', { ...cookies.user, losses: cookies.user.losses + 1, state: 'aftergame' })
         setTimeout(() => {
             ss.setGameProgress('losing screen')
         }, 1500)

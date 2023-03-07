@@ -1,6 +1,6 @@
 const preGame = ({ message, cookies, ss }) => {
     if (message.matched) {
-        cookies.set('user', { ...cookies.get('user'), state: 'matched' })
+        ss.setCookie('user', { ...cookies.user, state: 'matched' })
         ss.timer.setStart(1, message.time)
         const { enemyinfo } = message
         ss.setEnemyInfo(enemyinfo)

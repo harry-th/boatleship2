@@ -7,7 +7,7 @@ let useCornerMan = ({ socket, cookies, orientation, boardState, setBoardState, b
     const manipulatePos = (positions) => {
         for (let i = 0; i < positions.length; i++) {
             if (positions[i] >= 100 && orientation === 'h') positions[i] = positions[i] - 100
-            if (positions[i] >= 100 && orientation === 'v') positions[i] = positions[i] - 99
+            if (positions[i] >= 100 && orientation === 'v') positions[i] = positions[i] - 100
         }
         return positions
     }

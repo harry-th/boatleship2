@@ -17,16 +17,19 @@ import useTimer from './hooks/timer';
 import postGame from './messagelisteners/postGame';
 import preGame from './messagelisteners/preGame';
 import Games from './components/Games';
+import { useCookies } from 'react-cookie';
 
 
-const cookies = new Cookies()
+const nonStateCookies = new Cookies()
 
 function App() {
 
   const socket = useRef(null);
+  const [cookies, setCookie, removeCookie] = useCookies(['user']);
+
   const [gameProgress, setGameProgress] = useState('preplacement')
   const [boardState, setBoardState] = useState(() => generateBoard(true, true, 100))
-  const [boatNames, setBoatNames] = useState(['destroyer', 'cruiser', 'battleship', 'carrier'])
+  const [boatNames, setBoatNames] = useState(cookies?.user?.boatNames || ['destroyer', 'cruiser', 'battleship', 'carrier'])
   const [messages, setMessages] = useState([])
   const [chat, setChat] = useState([])
   const [freeShotMiss, setFreeShotMiss] = useState(0)
@@ -39,10 +42,13 @@ function App() {
   const [turn, setTurn] = useState(true)
   const [orientation, setOrientation] = useState('h')
   const [games, setGames] = useState([])
+  const [opengames, setOpengames] = useState([])
   const [display, setDisplay] = useState('home')
   const timer = useTimer()
-
   const [menuArray, setMenuArray] = useState(generateBoard(true, true, 9))
+
+  const [joinLobbyErrorMessage, setJoinLobbyErrorMessage] = useState(false)
+
   let { bluffing, setBluffing, OrangeManUI } = useOrangeMan()
   let { setLastShots, LineManUI, shootLine, setCharges } = useLineMan()
   // websocket connection
@@ -52,15 +58,14 @@ function App() {
   // socket connect/reconnect
   useEffect(function connect() {
     //wss://boatle.xyz:8080
-    //ws://localhost:8080
-    socket.current = new WebSocket('wss://boatle.xyz:8080');
+    //ws://localhost:8080/ws
+    socket.current = new WebSocket('ws://localhost:8080/ws');
 
     socket.current.onopen = (e) => {
       // when socket opens, send cookies if they exist
-      const user = cookies.get('user');
-      socket.current.send(JSON.stringify({ user }));
+      const id = nonStateCookies.get('id')?.id;
+      socket.current.send(JSON.stringify({ id }));
     }
-
     // attempt reconnect after 1s
     socket.current.onclose = (e) => {
       console.log('closed')
@@ -77,7 +82,6 @@ function App() {
       socket.current.close()
     }
   }, [])
-
   useEffect(() => {
     if ((gameProgress !== 'placement' && gameProgress !== 'ongoing')) {
       setFreeShotMiss(0)
@@ -96,23 +100,33 @@ function App() {
       timer.clear(2)
     }
   }, [gameProgress, timer])
-
   // socket open
   useEffect(() => {
     let ss = {
       setFreeShotMiss, setTurn, setEnemyFreeShotMiss, setLastShots, setMessages, setBluffing, setCharacter,
       setEnemyBoardState, setBoardState, setGameProgress, setTurnNumber, setEnemyTurnNumber, setCharges, setEnemyInfo,
-      timer, setChat
+      timer, setChat, setCookie
     }
     let messageListener = (event) => {
       let message = JSON.parse(event.data)
       console.log(message)
+      console.log(message.issue)
+
       if (message.games) setGames(message.games)
-      console.log(message)
+      if (message.opengames) setOpengames(Object.values(message.opengames))
       if (message.cookies) {  // set cookies received from server
+        setCookie('user', { state: 'prematching', ...cookies.user })
         Object.entries(message.cookies).forEach(([name, value]) => {
-          cookies.set(name, value)
+          nonStateCookies.set(name, value)
         })
+      }
+      if (message.issue) console.log('issue')
+      if (message.issue === 'wrong password') {
+        console.log('set error')
+        setJoinLobbyErrorMessage({ ...message, msg: message.issue })
+        setTimeout(() => {
+          setJoinLobbyErrorMessage(false)
+        }, 1500);
       }
       if (message.for === 'player') {
         fromYou({ message, ss })
@@ -126,7 +140,7 @@ function App() {
     return () => {
       socket.current.removeEventListener('message', messageListener)
     }
-  }, [bluffing, setLastShots, setBluffing, setCharges, timer])
+  }, [bluffing, setLastShots, setBluffing, setCharges, timer, cookies, setCookie])
 
   const menuSquare = ({ index, page = 'home', special }) => {
     return (
@@ -182,15 +196,19 @@ function App() {
     process(i)
   }
   useEffect(() => {
-    idleMenu()
-  }, [])
+    if (cookies?.user?.state === 'prematching')
+      idleMenu()
+  }, [cookies?.user?.state])
+  // useEffect(() => {
+  //   setCookie('user', { dingus: 'bingus' })
+  // })
   return (
     <div className={styles.app}>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
       <h1 className={styles.title}>WELCOME TO BATTLESHIP</h1>
 
 
-      {(gameProgress === 'preplacement' && cookies.get('user')?.state === 'prematching') ?
+      {(gameProgress === 'preplacement' && cookies?.user?.state === 'prematching') ?
         <div className={styles.pagecontent}>
           {display === 'home' &&
             <div className={[styles.boardmockmenu, styles[menuState]].join(' ')}
@@ -203,18 +221,19 @@ function App() {
                 setMenuState('active')
               }}
               onMouseLeave={() => {
-                idleMenu(idleCode.i)
-                setMenuState('idle')
+                if (display === 'home') {
+                  idleMenu(idleCode.i)
+                  setMenuState('idle')
+                }
               }}
             >{[...Array(9)].map((i, index) => {
               let page, special
               if (index === 0) page = 'current games'
               if (index === 2) page = 'finished games'
-              if (index === 3) page = 'open games'
               if (index === 4) {
                 page = 'play'
                 special = () => {
-                  cookies.set('user', { ...cookies.get('user'), state: 'matching' })
+                  setCookie('user', { ...cookies?.user, state: 'matching' })
                   setMessages([...messages])
                 }
               }
@@ -224,15 +243,12 @@ function App() {
             </div>
           }
           {display === 'current games' && <div className={styles.games}>
-            <Games games={games} setDisplay={setDisplay} current />
+            <Games games={games} setDisplay={setDisplay}
+              socket={socket} current />
           </div>
           }
           {display === 'finished games' && <div className={styles.games}>
-            <Games games={games} setDisplay={setDisplay} finished />
-          </div>
-          }
-          {display === 'open games' && <div className={styles.games}>
-            <Games games={games} setDisplay={setDisplay} socket={socket} cookies={cookies} open />
+            <Games games={games} setDisplay={setDisplay} socket={socket} finished />
           </div>
           }
         </div>
@@ -247,13 +263,13 @@ function App() {
             <Board player board={boardState} character={character} socket={socket.current}
               turn={turn}
               boatNames={boatNames} setBoatNames={setBoatNames}
-              cookies={cookies} setCookie={cookies.set}
+              cookies={cookies} setCookie={setCookie}
               boardState={boardState} setBoardState={setBoardState}
               orientation={orientation} gameProgress={gameProgress} setGameProgress={setGameProgress}
               timer={timer}
             />
             <EnemyBoard character={character} board={boardState} enemyBoardState={enemyBoardState} socket={socket}
-              cookies={cookies} setCookie={cookies.set} setEnemyBoardState={setEnemyBoardState}
+              cookies={cookies} setCookie={setCookie} setEnemyBoardState={setEnemyBoardState}
               boardState={boardState} turn={turn} setTurn={setTurn}
               enemyInfo={enemyInfo}
               setBoardState={setBoardState} gameProgress={gameProgress} setGameProgress={setGameProgress}
@@ -283,24 +299,21 @@ function App() {
               enemyInfo={enemyInfo}
             />
           </div>
-        </> : cookies.get('user')?.state === 'matching' ?
+        </> : cookies?.user?.state === 'matching' ?
           <div className={styles.pagecontent}>
-            <div>
-              <button onClick={() => {
-                cookies.set('user', { ...cookies.get('user'), state: 'prematching' })
-                setDisplay('home')
-                setMessages([...messages])
-              }}>back</button>
-              <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
-                setBoatNames={setBoatNames} cookies={cookies}
-                socket={socket} />
-            </div>
-          </div> : cookies.get('user')?.state === 'aftergame' ?
+            <Customization character={character} setCharacter={setCharacter} boatNames={boatNames}
+              setBoatNames={setBoatNames} cookies={cookies} setCookie={setCookie}
+              setMainMenuDisplay={setDisplay} opengames={opengames}
+              joinLobbyErrorMessage={joinLobbyErrorMessage} setJoinLobbyErrorMessage={setJoinLobbyErrorMessage}
+              socket={socket} />
+          </div> : cookies?.user?.state === 'aftergame' ?
             <div className={styles.pagecontent}>
               <Endofgame gameProgress={gameProgress} cookies={cookies}
+                setCookie={setCookie}
                 setGameProgress={setGameProgress} socket={socket}
                 enemyInfo={enemyInfo} chat={chat} setChat={setChat}
-                setDisplay={setDisplay} />
+                setMainMenuDisplay={setDisplay}
+              />
             </div>
             : <div></div>
       }

@@ -1,16 +1,15 @@
 const fromYou = ({ message, ss }) => {
     if (message.messagetype === 'reconnect') {
         const { info, data } = message
-        ss.timer.stop()
+        if (message?.data?.timer) ss.timer.setStart(message.data.timer, message.time)
+
         if (!data) {
-            ss.timer.setStart(message.timer, message.time)
             if (message.boardState) ss.setBoardState(message.boardState)
             ss.setEnemyInfo(info.enemyInfo)
             ss.setCharacter(info.character)
             ss.setGameProgress('placement')
             return
         }
-        if (message?.data?.timer) ss.timer.setStart(message.data.timer, message.time)
         ss.setCharacter(info.character)
         ss.setBoardState(data.boardState)
         ss.setEnemyBoardState(data.enemyBoardState)
@@ -35,7 +34,6 @@ const fromYou = ({ message, ss }) => {
     if (message.callbluff || message.shotresults) ss.setTurn(false)
     if (message.freeshot) ss.setTurn(true)
     else {
-        ss.timer.clear(1)//time
         ss.timer.setStart(2, message.time)
     }
     if (message.bluffing) ss.setBluffing(message.bluffing)

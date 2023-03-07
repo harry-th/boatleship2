@@ -28,7 +28,7 @@
   margin-top: 0px;
   padding-top: 20px;
   height: 80px;
-  margin-bottom: 30px;
+  margin-bottom: 0px;
 }
 .app .boardcontainer {
   padding: 10px;
@@ -38,7 +38,7 @@
   height: 81vh;
 }
 .app .pagecontent {
-  min-height: 83vh;
+  min-height: 87vh;
   min-width: 100vw;
   display: flex;
   justify-content: space-evenly;
@@ -49,6 +49,7 @@
   border: 2px solid black;
 }
 .app .pagecontent .boardmockmenu {
+  margin-top: 40px;
   width: 525px;
   height: 525px;
   display: flex;

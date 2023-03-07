@@ -10,7 +10,7 @@ const Board = ({ socket, cookies, enemyBoardState,
     const handleClick = (index, modifier) => {
         if (turn && enemyInfo?.status !== 'disconnected') {
             index = !Array.isArray(index) ? [index] : index
-            socket.current.send(JSON.stringify({ id: cookies.get('user').id, shot: true, index, ...modifier }))
+            socket.current.send(JSON.stringify({ shot: true, index, ...modifier }))
         }
     }
     let element = (index) => {

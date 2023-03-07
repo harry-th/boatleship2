@@ -18,12 +18,12 @@ const useTimer = () => {
         }, 1000))
     }
     const setStart = (timer, timeLength) => {
-        stop(timer)
+        stop()
         set(timer, timeLength, start)
     }
-    const stop = (timer) => {
-        clearInterval(timers[1].code)
-        clearInterval(timers[2].code)
+    const stop = () => {
+        clear(1)
+        clear(2)
     }
     const clear = (timer) => {
         clearInterval(timers[timer].code)

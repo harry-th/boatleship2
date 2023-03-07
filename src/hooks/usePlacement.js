@@ -34,22 +34,9 @@ const usePlacementLogic = ({ socket, orientation, cookies, boardState, setBoardS
         if (manipulatePos) {
             positions = manipulatePos(positions)
         }
-
         setBoatPlacements(prev => {
             return ({ ...prev, [currentBoat.name]: { name: currentBoat.name, positions, orientation, length: current.length } })
         })
-        // let newBoardState = { ...boardState }
-        // let oldPositions = Object.values({ ...boatPlacements, [currentBoat.name]: { name: currentBoat.name, positions, orientation, length: current.num } }).map((boat) => boat.positions).flat()
-        // setTargets(oldPositions)
-
-        // let allPositions = [...positions, ...oldPositions]
-        // console.log(oldPositions)
-        // for (const p in newBoardState) {
-        //     if (allPositions.includes(Number(p))) newBoardState[p].state = 'mine'
-        //     else newBoardState[p].state = null
-        // }
-        // console.log(newBoardState)
-        // setBoardState(newBoardState)
         current.place()
         if (numberOfBoats.num === current.num + 1) {
             let placements = { ...boatPlacements, [currentBoat.name]: { name: currentBoat.name, positions, orientation, length: current.num } }
@@ -61,7 +48,7 @@ const usePlacementLogic = ({ socket, orientation, cookies, boardState, setBoardS
             }
             socket.send(JSON.stringify({
                 character,
-                boatdata: true, id: cookies.get('user').id,
+                boatdata: true,
                 boatPlacements: placements,
                 boardState: newBoardState,
                 targets: [...targets, ...positions],

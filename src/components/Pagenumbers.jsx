@@ -9,7 +9,6 @@ const Pagenumbers = ({ selectedGames, setPage, page }) => {
     // if (pages > 10) {
     //     pages = pages.filter(item => (item > page - 3 && item < page + 7))
     // }
-    console.log(pages)
     return (
         <div>
             {pages.map((item, index) => {

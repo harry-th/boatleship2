@@ -1,40 +1,45 @@
 .customization {
+  background-color: rgb(154, 197, 247);
+  width: 100%;
+}
+.customization .nameselection {
+  position: relative;
+  top: -120px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  height: 100%;
 }
-.customization .name {
-  margin: 10px;
-  margin-top: 50px;
-  cursor: pointer;
+.customization .nameselection label {
+  font-weight: 500;
   font-size: 18px;
-  font-weight: 600;
-  text-decoration: underline;
 }
-.customization .gamefindmenu {
-  margin: 20px;
+.customization .nameselection input {
+  text-align: center;
+  width: 200px;
+  height: 20px;
+  border-radius: 8px;
+  font-size: 18px;
+}
+.customization .mainplay {
+  margin-top: 40px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
 }
-.customization .gamefindmenu div {
-  width: 200px;
-  margin-top: 15px;
-}
-.customization .gamefindmenu div button {
-  width: 200px;
-}
-.customization .characterselect {
-  width: 700px;
+.customization .mainplay .characterselect {
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
-.customization .characterselect div {
+.customization .mainplay .characterselect div {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 150px;
-  height: 250px;
+  width: 27%;
+  height: 70%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -43,32 +48,40 @@
   margin: 10px;
   cursor: pointer;
 }
-.customization .characterselect div:hover {
+.customization .mainplay .characterselect div:hover {
   background-color: rgb(218, 67, 67);
 }
-.customization .characterselect div ul {
-  margin: 10px;
-  margin-bottom: auto;
-  padding: 10px;
+.customization .mainplay .characterselect div.selected {
+  border: 2px solid orange;
 }
-.customization .characterselect div ul li {
-  text-align: left;
-  color: rgb(204, 225, 204);
-  font-size: 10px;
-  margin: 2px;
+.customization .mainplay .findgame {
+  margin-left: 40px;
+  padding: 100px;
+  width: 400px;
+  height: 400px;
+  background-color: rgb(86, 121, 235);
 }
-.customization .boatform {
+.customization .mainplay .findgame .characterselectcontainer {
+  width: 360px;
+  height: 150px;
+}
+.customization .mainplay .findgame div {
+  margin: 5px;
+}
+.customization .mainplay .findgame .boatform {
+  background-color: antiquewhite;
   margin: 15px;
   padding: 20px;
   border: 2px solid black;
+  border-radius: 8px;
 }
-.customization .boatform input {
+.customization .mainplay .findgame .boatform input {
   font-size: 14px;
   text-align: center;
   border-radius: 8px;
   margin-bottom: 10px;
 }
-.customization .boatform .chooseBoatNames {
+.customization .mainplay .findgame .boatform .chooseBoatNames {
   background-color: rgb(72, 72, 235);
   border: 4px solid rgb(12, 12, 212);
   border-radius: 4px;
@@ -76,30 +89,35 @@
   padding: 10px;
   cursor: pointer;
 }
-.customization .boatform form {
+.customization .mainplay .findgame .boatform form {
   display: flex;
   flex-direction: column;
 }
-.customization .boatform form label {
+.customization .mainplay .findgame .boatform form label {
   font-weight: 500;
 }
-.customization .boatform form label:nth-child(3) {
+.customization .mainplay .findgame .boatform form label:nth-child(2) {
   color: rgb(54, 90, 6);
 }
-.customization .boatform form label:nth-child(5) {
+.customization .mainplay .findgame .boatform form label:nth-child(4) {
   color: rgb(129, 81, 7);
 }
-.customization .boatform form label:nth-child(7) {
+.customization .mainplay .findgame .boatform form label:nth-child(6) {
   color: rgb(27, 44, 197);
 }
-.customization .boatform form label:nth-child(9) {
+.customization .mainplay .findgame .boatform form label:nth-child(8) {
   color: rgb(179, 14, 28);
 }
-.customization .boatform .boatfields {
+.customization .mainplay .findgame .boatform .boatfields {
   display: flex;
   flex-direction: column;
 }
-.customization .boatform .boatfields h4 {
+.customization .mainplay .findgame .boatform .boatfields h4 {
   color: rgb(40, 63, 194);
   margin: 10px;
+}
+.customization .mainplay .lobby .characterselectcontainer {
+  width: 350px;
+  height: 120px;
+  font-size: 14px;
 }/*# sourceMappingURL=Customization.module.css.map */

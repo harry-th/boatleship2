@@ -68,33 +68,26 @@ const wscodes = {} //{id: ws}
 const userData = {} //{id:{gameinformation}}
 const userInfo = {}//{id:{userinformation}}
 const opengames = {}
-const matchcode = ({ id, code, character, name, boatnames }) => { // code based matching
-    if ((character !== 'default' && opengames[code].character === 'default') || (character === 'default' && opengames[code].character !== 'default')) {
-        let charactertype
-        if (opengames[code].character === 'default') charactertype = 'default'
-        else charactertype = 'character'
-        wscodes[id].send(JSON.stringify({ issue: 'character type mismatch', charactertype }))
-    } else
-        if ((opengames).hasOwnProperty(code) && ((character === 'default' && opengames[code].character === 'default') || (character !== 'default' && opengames[code].character !== 'default'))) {
-            userInfo[id] = { ...userInfo[id], name, character, boatnames }
+const joinLobby = ({ id, lobbyId, character, name, boatnames }) => { // code based matching
 
-            groups[opengames[code].id] = id
-            groups[id] = opengames[code].id
+    userInfo[id] = { ...userInfo[id], name, character, boatnames }
 
-            delete opengames[code]
-            delete games[code]
+    groups[opengames[lobbyId].id] = id
+    groups[id] = opengames[lobbyId].id
 
-            let playerinfo = userInfo[id]
-            let enemyinfo = userInfo[groups[id]]
-            wscodes[id].send(JSON.stringify({ codematch: true, matched: true, enemyinfo, time: 60, character: playerinfo.character }))
-            wscodes[groups[id]].send(JSON.stringify({ matched: true, enemyinfo: playerinfo, time: 60, character: enemyinfo.character }))
-            const gameId = uuid.v4()
-            games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name, player1character: playerinfo.character, player2character: enemyinfo.character }
-            playerinfo.currentGame = gameId
-            enemyinfo.currentGame = gameId
-            placementTimer({ userData, userInfo, groups, games, id, wscodes })
-        }
+    delete opengames[lobbyId]
+    delete userInfo[groups[id]].hostingLobby
+    let playerinfo = userInfo[id]
+    let enemyinfo = userInfo[groups[id]]
+    wscodes[id].send(JSON.stringify({ codematch: true, matched: true, enemyinfo, time: 60, character: playerinfo.character }))
+    wscodes[groups[id]].send(JSON.stringify({ matched: true, enemyinfo: playerinfo, time: 60, character: enemyinfo.character }))
+    const gameId = uuid.v4()
+    games[gameId] = { state: 'placement', player1: playerinfo.name, player2: enemyinfo.name, player1character: playerinfo.character, player2character: enemyinfo.character }
+    playerinfo.currentGame = gameId
+    enemyinfo.currentGame = gameId
+    placementTimer({ userData, userInfo, groups, games, id, wscodes })
 }
+
 const findGroup = ({ groups, id, name, character, boatnames }) => {
     userInfo[id] = { ...userInfo[id], name, character, boatnames }
     let matchID = Object.entries(groups).find((group) => group[1] === null)
@@ -104,8 +97,8 @@ const findGroup = ({ groups, id, name, character, boatnames }) => {
         groups[id] = matchID
         let playerinfo = userInfo[id]
         let enemyinfo = userInfo[groups[id]]
-        wscodes[id].send(JSON.stringify({ matched: true, enemyinfo, time: 60 }))
-        wscodes[groups[id]].send(JSON.stringify({ matched: true, enemyinfo: playerinfo, time: 60 }))
+        wscodes[id].send(JSON.stringify({ matched: true, character: playerinfo.character, enemyinfo, time: 60 }))
+        wscodes[groups[id]].send(JSON.stringify({ matched: true, character: enemyinfo.character, enemyinfo: playerinfo, time: 60 }))
         const gameId = uuid.v4()
         games[gameId] = { state: 'placement', players: [id, groups[id]], player1: playerinfo.name, player2: enemyinfo.name, player1character: playerinfo.character, player2character: enemyinfo.character }
         playerinfo.currentGame = gameId
@@ -125,11 +118,13 @@ wss.on('listening', () => {
 
 wss.on('connection', (ws) => {
     const cookieHandler = (data) => {
-        let id = JSON.parse(data)?.user?.id;
-
+        console.log(JSON.parse(data))
+        let id = JSON.parse(data)?.id;
+        // if (!id) return
         // cookie data was received
-        console.log('userinfo', userInfo[id], 'data', JSON.parse(data)?.user?.id)
-        if (!userInfo[id]) {
+        console.log('userinfo', userInfo[id], 'data', id)
+        console.log(!userInfo[id])
+        if (!userInfo[id] || !id) {
             do { id = uuid.v4() } while (groups.hasOwnProperty(id));
             userInfo[id] = {}  // placeholder
 
@@ -137,7 +132,7 @@ wss.on('connection', (ws) => {
 
             ws.send(JSON.stringify({
                 cookies: {
-                    'user': { id, state: 'prematching' }
+                    'id': { id }
                 }
             }));
         }
@@ -156,7 +151,6 @@ wss.on('genuine connection', (ws, id) => {
 
     wscodes[id] = ws
 
-    ws.send(JSON.stringify({ games }))
 
 
     // create new user
@@ -184,7 +178,6 @@ wss.on('genuine connection', (ws, id) => {
                 time = Math.floor((userData[groups[id]].timer.remaining - 2000) / 1000)
             }
         }
-        wscodes[id] = ws
         wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', time, messagetype: 'reconnect', timer: enemyTimer, turn: userData[groups[id]].turn }))
         let enemyInfo = userInfo[groups[id]]
         let enemyBoardState = JSON.parse(JSON.stringify(userData[groups[id]].boardState))
@@ -203,12 +196,10 @@ wss.on('genuine connection', (ws, id) => {
             data: { enemyBoardState, ...data }
         }))
     } else if (games[userInfo[id].currentGame]?.state === 'placement') {
-        wscodes[id] = ws
         wscodes[groups[id]].send(JSON.stringify({ for: 'opponent', messagetype: 'reconnect' }))
         let enemyInfo = userInfo[groups[id]]
         let boardState
         if (userData[id]?.boardState) boardState = { boardState: userData[id].boardState }
-        console.log(userData[id].timer)
         ws.send(JSON.stringify({ for: 'player', timer: 1, time: Math.floor((userData[id]?.timer?.remaining) / 1000), messagetype: 'reconnect', info: { enemyInfo, ...userInfo[id], }, ...boardState }))
     } else if (games[userInfo[id].currentGame]?.state === 'finished') {
         ws.send(JSON.stringify({ issue: 'reconnectAfterDisconnect' }))
@@ -261,6 +252,36 @@ wss.on('genuine connection', (ws, id) => {
 
     ws.on('message', (message) => {
         message = JSON.parse(message)
+        if (message.type === 'joingame') {
+            const { lobbyId, character, name, boatnames } = message
+            if (id === opengames[message.lobbyId].id) return
+            if (opengames[message.lobbyId] && !opengames[message.lobbyId].privacy) {
+                if (opengames[message.lobbyId].type === 'default' && character !== 'default') return
+                joinLobby({ id, lobbyId, character, name, boatnames })
+            } else if (opengames[message.lobbyId].privacy) {
+                if (message.password === opengames[message.lobbyId].password) {
+                    joinLobby({ id, lobbyId, character, name, boatnames })
+                } else {
+                    ws.send(JSON.stringify({ id: lobbyId, issue: 'wrong password' }))
+                }
+            }
+        }
+        if (message.request) {
+            if (message.request === 'games') {
+                ws.send(JSON.stringify({ games }))
+            } else if (message.request === 'opengames') {
+                const noIdOpenGames = Object.fromEntries(Object.entries(opengames).map(item => {
+                    item[1] = {
+                        name: item[1].name,
+                        lobbyId: item[1].lobbyId,
+                        type: item[1].type,
+                        privacy: item[1].privacy
+                    }
+                    return item
+                }))
+                ws.send(JSON.stringify({ opengames: noIdOpenGames }))
+            }
+        }
         // console.log(message)
         if (!message.shot) console.log(message)
         const enemydata = userData[groups[id]]
@@ -309,6 +330,7 @@ wss.on('genuine connection', (ws, id) => {
                         if ((message.twoShot || message.shootline) && playerdata.charges < 1) return // this and the line below prevent illegal behavior
                         else if (message.shootline && (index[1] - index[0] !== 1 && index[1] - index[0] !== 10)) return
                         else if (message.twoShot && !playerdata.twoShots) return
+
                     }
                     if (playerinfo.character === 'orangeman') {
                         if (message.retaliation && playerdata.bluffing !== 'ready') return // prevents using ability if not in the proper state
@@ -317,9 +339,8 @@ wss.on('genuine connection', (ws, id) => {
                     const { bluffing } = message
                     let shotresults = { missed: [], hit: [] }
                     if (playerinfo.character === 'lineman') {
-                        if (message.twoShot && playerdata.charges) index = playerdata.twoShots
-                        else if (message.twoShot && playerdata.charges < 1) index = []
 
+                        if (message.twoShot) index = playerdata.twoShots
                         if (message.twoShot || message.shootline) {
                             playerdata.charges -= 1
                             playerModifier = { ...playerModifier, charges: playerdata.charges }
@@ -488,18 +509,40 @@ wss.on('genuine connection', (ws, id) => {
         }
         if (message.state === 'matching') {
             if (groups[id]) console.log('id present  ' + groups[id])
-            if ((!groups.hasOwnProperty(id) || message.character !== userInfo[id].character) && !message.privacy) {
+            if ((!groups.hasOwnProperty(id) || message.character !== userInfo[id].character) && !message.creategame) {
                 findGroup({ groups, id: id, name: message.name, character: message.character, boatnames: message.boatNames })
-            } else if (message.privacy) { // code based matching
-                const gameId = uuid.v4() //currentgame = code
-                games[gameId] = { state: 'looking for match', player: message.name }
-                opengames[gameId] = { id: message.id, character: message.character }
-                userInfo[id] = { ...userInfo[id], name: message.name, character: message.character, boatnames: message.boatNames }
-                ws.send(JSON.stringify({ code: gameId }))
+            } else if (message.privacy && message.creategame && !userInfo[id].hostingLobby) { // code based matching
+                const lobbyId = uuid.v4() //currentgame = code
+                opengames[lobbyId] = {
+                    id,
+                    lobbyId,
+                    privacy: true,
+                    name: message.name,
+                    type: message.character === 'default' ? 'default' : 'character',
+                    password: message.password
+                }
+                userInfo[id] = {
+                    ...userInfo[id], name: message.name,
+                    character: message.character,
+                    boatnames: message.boatNames,
+                    hostingLobby: true
+                }
+            } else if (message.creategame && !userInfo[id].hostingLobby) {
+                console.log('creategame')
+                const lobbyId = uuid.v4() //currentgame = code
+                opengames[lobbyId] = {
+                    id,
+                    lobbyId,
+                    name: message.name,
+                    type: message.character === 'default' ? 'default' : 'character',
+                }
+                userInfo[id] = {
+                    ...userInfo[id], name: message.name,
+                    character: message.character,
+                    boatnames: message.boatNames,
+                    hostingLobby: true
+                }
             }
-        }
-        if (message.matchcode) {// code based matching
-            matchcode({ id: message.id, code: message.code, name: message.name, character: message.character, boatnames: message.boatNames })
         }
     });
 });

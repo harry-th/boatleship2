@@ -1,13 +1,16 @@
 import { useEffect } from "react"
 import { useState } from "react"
 import Pagenumbers from "./Pagenumbers"
-const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) => {
+const Games = ({ games, setDisplay, finished, current,
+    socket, cookies, setCookie }) => {
     games = Object.values(games)
+    useEffect(() => {
+        socket.current.send(JSON.stringify({ request: 'games' }))
+    }, [socket])
     const [page, setPage] = useState(1)
     let selectedGames = Object.values(games).filter((item, index) => {
         if (finished) return item.state === 'finished'
         else if (current) return (item.state === 'placement' || item.state === 'ongoing')
-        else if (open) return item.state === 'looking for match'
         else return item
     }
     )
@@ -16,23 +19,7 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
         else return true
     })
 
-    const [errorMessage, setErrorMessage] = useState(null)
-    useEffect(() => {
-        if (open) {
-            let sock = socket.current
-            const messageListener = (event) => {
-                let message = JSON.parse(event.data)
-                if (message.issue === 'character type mismatch') {
-                    if (message.charactertype === 'default') setErrorMessage(<><label>change character to default?</label> <button onClick={cookies.set('user', { ...cookies.get('user'), character: 'default' })}>?</button></>)
-                    else if (message.charactertype === 'character') setErrorMessage('choose a character at play')
-                }
-            }
-            socket.current.addEventListener('message', messageListener)
-            return () => {
-                sock.removeEventListener('message', messageListener)
-            }
-        }
-    }, [socket, open, cookies])
+
 
     return (
         <div>
@@ -45,30 +32,6 @@ const Games = ({ games, setDisplay, finished, current, open, socket, cookies }) 
                     <table>
                         <tr>
                             <th>
-                                {open && <> {games.length > 0 ? <>
-                                    {!errorMessage ? <label htmlFor="">input code:</label> : <p>{errorMessage}</p>}
-                                    <form action="submit"
-                                        onSubmit={(e) => {
-                                            let user = cookies.get('user')
-                                            e.preventDefault()
-                                            if (!user.name) {
-                                                setErrorMessage('go to play and enter name')
-                                                return
-                                            } else if (!user.character) {
-                                                setErrorMessage('go to play and enter character')
-                                                return
-                                            } else if (!user.boatNames) {
-                                                return
-                                            }
-                                            socket.current.send(JSON.stringify({
-                                                ...cookies.get('user'),
-                                                matchcode: true,
-                                                code: e.target[0].value
-                                            }))
-                                        }}>
-                                        <input type="text" />
-                                    </form>
-                                </> : 'no open games'}</>}
                                 {finished && <>
                                     <th>{games.length > 0 ? 'Finished Matches:' : 'there are no finished matches'}</th>
                                 </>}
