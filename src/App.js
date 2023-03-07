@@ -59,7 +59,7 @@ function App() {
   useEffect(function connect() {
     //wss://boatle.xyz:8080
     //ws://localhost:8080/ws
-    socket.current = new WebSocket('ws://localhost:8080/ws');
+    socket.current = new WebSocket('wss://boatle.xyz:8080');
 
     socket.current.onopen = (e) => {
       // when socket opens, send cookies if they exist
