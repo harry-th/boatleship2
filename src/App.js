@@ -205,7 +205,7 @@ function App() {
   return (
     <div className={styles.app}>
       {/* {(socket?.readyState !== undefined && gameProgress === 'preplacement') && <div>connected</div>} */}
-      <h1 className={styles.title}>WELCOME TO BATTLESHIP</h1>
+      <h1 className={styles.title}>{socket.current?.readyState === 1 ? 'WELCOME TO BATTLESHIP' : 'WAITING FOR SERVER CONNECTION'}</h1>
 
 
       {(gameProgress === 'preplacement' && cookies?.user?.state === 'prematching') ?

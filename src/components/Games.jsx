@@ -5,7 +5,7 @@ const Games = ({ games, setDisplay, finished, current,
     socket, cookies, setCookie }) => {
     games = Object.values(games)
     useEffect(() => {
-        socket.current.send(JSON.stringify({ request: 'games' }))
+        if (socket.current?.readyState === 1) socket.current.send(JSON.stringify({ request: 'games' }))
     }, [socket])
     const [page, setPage] = useState(1)
     let selectedGames = Object.values(games).filter((item, index) => {

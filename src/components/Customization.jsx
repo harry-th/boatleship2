@@ -6,7 +6,6 @@ const Customization = ({ character, setCharacter,
     boatNames, setBoatNames, cookies, socket, setMainMenuDisplay, opengames,
     joinLobbyErrorMessage, setJoinLobbyErrorMessage,
     setCookie }) => {
-    const [display, setDisplay] = useState(!character ? 'character' : cookies.user.name ? 'done' : 'name')
     const [waiting, setWaiting] = useState(null)
 
     const [lobbyCharacter, setLobbyCharacter] = useState(false)
@@ -24,11 +23,12 @@ const Customization = ({ character, setCharacter,
     const [charSelDisplay, setCharSelDisplay] = useState((cookies.user.character && cookies.user.character !== 'default') ? 'characters' : 'default')
     const [boatFormDisplay, setBoatFormDisplay] = useState(false)
     const [hasCharacter, setHasCharacter] = useState(false)
+    const [isWaiting, setIsWaiting] = useState(false)
     useEffect(() => {
         if (socket.current?.readyState === 1) socket.current.send(JSON.stringify({ request: 'opengames' }))
         let requestOpenGames = () => {
             return setTimeout(() => {
-                socket.current.send(JSON.stringify({ request: 'opengames' }))
+                if (socket.current?.readyState === 1) socket.current.send(JSON.stringify({ request: 'opengames' }))
                 requestOpenGames()
             }, 10000);
         }
@@ -101,9 +101,16 @@ const Customization = ({ character, setCharacter,
                                                 if (cookies.user.state === 'matching') periods()
                                             }, 1000)
                                         }
-                                        periods()
-                                        setWaiting('waiting for match')
-                                        socket.current.send(JSON.stringify({ ...cookies.user }))
+                                        if (socket.current?.readyState === 1) {
+                                            if (!isWaiting) {
+                                                periods()
+                                                setIsWaiting(true)
+                                            }
+                                            setWaiting('waiting for match')
+                                        } else {
+                                            setWaiting('not connected to server')
+                                        }
+                                        if (socket.current?.readyState === 1) socket.current.send(JSON.stringify({ ...cookies.user }))
                                     } else {
 
                                     }
@@ -183,7 +190,7 @@ const Customization = ({ character, setCharacter,
                                 <button onClick={() => {
                                     if (lobbyCharacter) {
                                         if (((privacy && password) || (!privacy && !password))) {
-                                            socket.current.send(JSON.stringify({
+                                            if (socket.current?.readyState === 1) socket.current.send(JSON.stringify({
                                                 name: cookies.user.name,
                                                 state: 'matching',
                                                 boatNames: cookies.user.boatNames,
